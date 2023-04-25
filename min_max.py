@@ -4,10 +4,14 @@ import simpy
 import matplotlib.pyplot as plt
 import numpy as np
 
+from generacion_datos import demanda_simulada, suavizacion_demanda
+
 
 # Order policy (s,S)
 def bodega(env, min, max, periodo):
     global inventario, balance, cant_ordenada
+
+    demanda_historica = demanda_simulada()
 
     # Inventario inicial
     inventario = max
@@ -29,6 +33,9 @@ def bodega(env, min, max, periodo):
         # Genera demanda por cliente
         demanda = generar_demanda()
 
+        # Añado demanda al histórico
+        demanda_historica.append(demanda)
+
         # Suficiente inventario para suplir demanda
         if demanda < inventario:
             balance += precio_venta * demanda
@@ -49,15 +56,28 @@ def bodega(env, min, max, periodo):
         if (
             (inventario < min and cant_ordenada == 0)
         ):
-            env.process(realizar_orden(env, max))
+            env.process(realizar_orden(env, max, demanda_historica))
 
 
-def realizar_orden(env, max):
+def realizar_orden(env, max, demanda_historica):
     global inventario, balance, cant_ordenada
     costo_orden = 50
     lead_time = 2
 
+    # Usando solo política min-max
     cant_ordenada = max - inventario
+
+    # Usando promedio movil simple
+    F_t = np.mean(demanda_historica)
+    print("F_t: {} vs cant_ordenada: {}".format(F_t, cant_ordenada))
+
+    # Usando pronóstico de uniformidad exponencial
+    alpha = 0.1
+    suav_demanda = suavizacion_demanda(demanda_historica, alpha)
+    F_t = suav_demanda[-1]
+
+    cant_ordenada = F_t
+
     balance -= costo_orden * cant_ordenada
     print("{:.2f} Nueva orden por: {}".format(env.now, cant_ordenada))
 
