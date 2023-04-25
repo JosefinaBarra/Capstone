@@ -4,7 +4,8 @@ import simpy
 import matplotlib.pyplot as plt
 import numpy as np
 
-from generacion_datos import demanda_simulada, suavizacion_demanda
+from generacion_datos import demanda_simulada
+from pronostico_demanda import suavizacion_demanda, prom_pond_simple
 
 
 # Order policy (s,S)
@@ -68,7 +69,7 @@ def realizar_orden(env, max, demanda_historica):
     cant_ordenada = max - inventario
 
     # Usando promedio movil simple
-    F_t = np.mean(demanda_historica)
+    F_t = prom_pond_simple(demanda_historica)
     print("F_t: {} vs cant_ordenada: {}".format(F_t, cant_ordenada))
 
     # Usando pronóstico de uniformidad exponencial

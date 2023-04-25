@@ -12,11 +12,3 @@ def demanda_simulada():
         dias += 1
 
     return demanda
-
-
-def suavizacion_demanda(demanda, alpha):
-    pronostico = [demanda[0]]
-    for i in range(1, len(demanda)):
-        calculo = pronostico[-1] + alpha*(demanda[i]-pronostico[-1])
-        pronostico.append(calculo)
-    return pronostico
