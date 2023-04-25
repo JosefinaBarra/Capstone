@@ -2,7 +2,7 @@
 ## Profesor: Gonzalo Pérez | Ayudante: Jorge Fuenzalida
 Se realiza la simulación de los datos y su gráfica usando las librerías ```simpy```, ```numpy``` y ```matplotlib```.
 
-Primero se generan datos aleatorios para la demanda en el archivo `generacion_datos.py`, suponiendo que la demanda `d ~ Uniforme(1,50)`. En ese mismo archivo se calcula la suavización de la demanda histórica según un valor $\alpha$ en la función `suavizacion_demanda(demanda, alpha)`.
+Primero se generan datos aleatorios para la demanda en el archivo `generacion_datos.py`, suponiendo que la demanda `d ~ Poisson(lambda)`. En ese mismo archivo se calcula la suavización de la demanda histórica según un valor $\alpha$ en la función `suavizacion_demanda(demanda, alpha)`.
 
 Las políticas de inventario simuladas son:
 * Política min-max: Archivo `min_max.py`. El código se basa en el siguiente [video](https://www.youtube.com/watch?v=Kmu9DNQamLw&ab_channel=PaulGrogan)

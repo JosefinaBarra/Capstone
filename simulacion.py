@@ -103,7 +103,7 @@ def generar_llegada_cliente():
 
 # Demanda por cliente D ~ Unif(1,4)
 def generar_demanda():
-    return np.random.randint(1, 5)
+    return np.random.poisson(1./5)
 
 
 obs_time = []

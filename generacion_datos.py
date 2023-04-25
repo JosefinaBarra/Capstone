@@ -7,7 +7,7 @@ def demanda_simulada():
     dias = 0
 
     while dias < 30:
-        demanda_random = np.random.randint(1, 50)
+        demanda_random = np.random.poisson(1./5)
         demanda.append(demanda_random)
         dias += 1
 
