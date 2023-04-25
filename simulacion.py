@@ -9,13 +9,15 @@ from pronostico_demanda import suavizacion_demanda, prom_pond_simple
 
 
 # Order policy (s,S)
-def bodega(env, min, max, periodo):
+def bodega(env, rop, max, demanda_historica):
     global inventario, balance, cant_ordenada
 
-    demanda_historica = demanda_simulada()
-
     # Inventario inicial
-    inventario = max
+    inventario = 0
+
+    # Pido inventario mínimo
+    env.process(realizar_orden(env, rop, demanda_historica))
+
     balance = 0.0
     cant_ordenada = 0
 
@@ -53,31 +55,30 @@ def bodega(env, min, max, periodo):
             inventario = 0
             print("{:.2f} Sold out: {}".format(env.now, inventario))
 
-        # Reviso condición de reabastecimiento
+        # Revisión continua condición de reabastecimiento
         if (
-            (inventario < min and cant_ordenada == 0)
+            (inventario < rop and cant_ordenada == 0)
         ):
             env.process(realizar_orden(env, max, demanda_historica))
-
+        
 
 def realizar_orden(env, max, demanda_historica):
     global inventario, balance, cant_ordenada
     costo_orden = 50
     lead_time = 2
 
+    # POLÍTICAS DE INVENTARIO
     # Usando solo política min-max
-    cant_ordenada = max - inventario
+    # cant_ordenada = max - inventario
 
+    # PRONÓSTICO DE DEMANDA
     # Usando promedio movil simple
-    F_t = prom_pond_simple(demanda_historica)
-    print("F_t: {} vs cant_ordenada: {}".format(F_t, cant_ordenada))
+    cant_ordenada = prom_pond_simple(demanda_historica)
 
     # Usando pronóstico de uniformidad exponencial
-    alpha = 0.1
-    suav_demanda = suavizacion_demanda(demanda_historica, alpha)
-    F_t = suav_demanda[-1]
-
-    cant_ordenada = F_t
+    #alpha = 0.1
+    #suav_demanda = suavizacion_demanda(demanda_historica, alpha)
+    #cant_ordenada = suav_demanda[-1]
 
     balance -= costo_orden * cant_ordenada
     print("{:.2f} Nueva orden por: {}".format(env.now, cant_ordenada))
@@ -119,12 +120,16 @@ def observe(env):
 
 
 np.random.seed(0)
-min = 10
+demanda_historica = demanda_simulada()
+
+obs_time = []
+nivel_inventario = []
+
+rop = 10
 max = 30
-periodo = 1
 
 env = simpy.Environment()
-env.process(bodega(env, min, max, periodo))
+env.process(bodega(env, rop, max, demanda_historica))
 env.process(observe(env))
 env.run(until=30)
 
