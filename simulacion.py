@@ -1,140 +1,107 @@
 # Código: https://www.youtube.com/watch?v=Kmu9DNQamLw&ab_channel=PaulGrogan
+# Código: https://asadali047.medium.com/inventory-simulation-for-beginners-7ea55eb6c4f8
 
 import simpy
 import matplotlib.pyplot as plt
 import numpy as np
 
-from generacion_datos import demanda_simulada
-from pronostico_demanda import suavizacion_demanda, prom_pond_simple
 
+class Bodega:
+    def __init__(
+        self, env, rop, max, costo_almacenamiento, costo_orden, precio_venta, lead_time
+    ):
+        self.env = env
+        self.rop = rop
+        self.max = max
+        #self.demanda = demanda
+        self.costo_almacenamiento = costo_almacenamiento
+        self.precio_venta = precio_venta
+        self.costo_orden = costo_orden
+        self.lead_time = lead_time
 
-# Order policy (s,S)
-def bodega(env, rop, max, demanda_historica):
-    global inventario, balance, cant_ordenada
+        # Inventario inicial
+        self.inventario = max
+        self.balance = 0
+        self.cant_ordenada = 0
+        self.obs = []
+        self.nivel_inventario = []
 
-    # Inventario inicial
-    inventario = 0
+    def generar_llegada_cliente(self):
+        return np.random.exponential(1./5)
 
-    # Pido inventario mínimo
-    env.process(realizar_orden(env, rop, demanda_historica))
+    # Demanda por cliente D ~ Unif(1,4)
+    def generar_demanda(self):
+        return np.random.randint(1,5)
 
-    balance = 0.0
-    cant_ordenada = 0
+    def realizar_orden(self):
+        # Política (s,S) o min/max:
+        self.cant_ordenada = self.max
+        print("{:.2f} Nueva orden por: {}".format(self.env.now, self.max))
 
-    costo_almac = 2
-    precio_venta = 200
+        # Política EOQ
+        # BUSCAR
 
-    while True:
-        llegada_cliente = generar_llegada_cliente()
-
-        # Esperar llegada cliente
-        yield env.timeout(llegada_cliente)
-
-        # Actualizar balance por costo de almacenamiento
-        balance -= inventario * costo_almac*llegada_cliente
-
-        # Genera demanda por cliente
-        demanda = generar_demanda()
-
-        # Añado demanda al histórico
-        demanda_historica.append(demanda)
-
-        # Suficiente inventario para suplir demanda
-        if demanda < inventario:
-            balance += precio_venta * demanda
-            inventario -= demanda
-            print(
-                "{:.2f} Vendido: {} - Inventario actual: {}".format(
-                    env.now, demanda, inventario
-                )
-            )
-
-        else:
-            # No hay suficiente inventario -> Se vende todo
-            balance += precio_venta * inventario
-            inventario = 0
-            print("{:.2f} Sold out: {}".format(env.now, inventario))
-
-        # Revisión continua condición de reabastecimiento
-        if (
-            (inventario < rop and cant_ordenada == 0)
-        ):
-            env.process(realizar_orden(env, max, demanda_historica))
+        self.balance -= self.cant_ordenada * self.costo_orden
         
+        # Espero que llegue pedido
+        yield self.env.timeout(self.lead_time)
+        self.inventario += self.cant_ordenada
+        self.cant_ordenada = 0
 
-def realizar_orden(env, max, demanda_historica):
-    global inventario, balance, cant_ordenada
-    costo_orden = 50
-    lead_time = 2
+        print(f'[{round(self.env.now, 2)}] Orden recibida, {self.inventario} en inventario')
 
-    # POLÍTICAS DE INVENTARIO
-    # Usando solo política min-max
-    # cant_ordenada = max - inventario
+    def runner_setup(self):
+        while True:
+            llegada_cliente = self.generar_llegada_cliente()
 
-    # PRONÓSTICO DE DEMANDA
-    # Usando promedio movil simple
-    cant_ordenada = prom_pond_simple(demanda_historica)
+            # Espero llegada cliente
+            yield self.env.timeout(llegada_cliente)
 
-    # Usando pronóstico de uniformidad exponencial
-    #alpha = 0.1
-    #suav_demanda = suavizacion_demanda(demanda_historica, alpha)
-    #cant_ordenada = suav_demanda[-1]
+            # Costo almacenar hasta llegada cliente
+            self.balance -= self.inventario*self.costo_almacenamiento*llegada_cliente
+            
+            # Generar demanda cliente
+            self.demanda = self.generar_demanda()
 
-    balance -= costo_orden * cant_ordenada
-    print("{:.2f} Nueva orden por: {}".format(env.now, cant_ordenada))
+            # Hay stock
+            if self.demanda < self.inventario:
+                self.balance += self.precio_venta*self.demanda
+                self.inventario -= self.demanda
+                print(f'[ {round(self.env.now,2)}] Vendo {self.demanda}')
+            
+            # No hay stock -> Vendo todo
+            else:
+                self.balance += self.precio_venta*self.inventario
+                self.inventario = 0
+                print(f'[{round(self.env.now,2)}] Stock insuficiente!! Quedan: {self.inventario} ')
 
-    # Tiempo que demora en llegar pedido
-    yield env.timeout(lead_time)
-
-    # Actualizar inventario
-    inventario += cant_ordenada
-    cant_ordenada = 0
-    print(
-        "{:.2f} orden recibida, {} en inventario".format(
-            env.now, inventario
-        )
-    )
-
-
-# Llegada de cliente d ~ Exp(lambda=5)
-def generar_llegada_cliente():
-    return np.random.exponential(1./5)
-
-
-# Demanda por cliente D ~ Unif(1,4)
-def generar_demanda():
-    return np.random.poisson(1./5)
-
-
-obs_time = []
-nivel_inventario = []
+            # Revisión continua: Inventario < min Y no hay orden en camino
+            if self.inventario < self.rop and self.cant_ordenada == 0:
+                self.env.process(self.realizar_orden())
+    
+    def observe(self):
+        while True:
+            self.obs.append(self.env.now)
+            self.nivel_inventario.append(self.inventario)
+            yield self.env.timeout(0.1)
+    
+    def grafico(self):
+        plt.figure()
+        plt.step(self.obs, self.nivel_inventario, where='post')
+        plt.xlabel("Días")
+        plt.ylabel("Inventario")
+        plt.show()
 
 
-def observe(env):
-    global inventario
-
-    while True:
-        obs_time.append(env.now)
-        nivel_inventario.append(inventario)
-        yield env.timeout(0.1)
+def run(simulation:Bodega,until:float):
+    simulation.env.process(simulation.runner_setup())
+    simulation.env.process(simulation.observe())
+    simulation.env.run(until=until)
 
 
 np.random.seed(0)
-demanda_historica = demanda_simulada()
 
-obs_time = []
-nivel_inventario = []
-
-rop = 10
-max = 30
-
-env = simpy.Environment()
-env.process(bodega(env, rop, max, demanda_historica))
-env.process(observe(env))
-env.run(until=30)
-
-plt.figure()
-plt.step(obs_time, nivel_inventario, where='post')
-plt.xlabel("Días")
-plt.ylabel("Inventario")
-plt.show()
+s = Bodega(simpy.Environment(), 10, 30, 2, 50, 100, 2)
+run(s,8)
+#print(s.inventory_level)
+s.grafico()
