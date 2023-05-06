@@ -15,6 +15,6 @@ for valores in valores_politica:
         s = Bodega(valores[0], valores[1])
         s.run()
         s.guardar_datos()
-        resultado["POLÍTICA "+str(valores)]["repeticion"+str(i)] = s.guardar_kpi()
+        resultado["POLITICA "+str(valores)]["repeticion"+str(i)] = s.guardar_kpi()
 
 print(json.dumps(resultado, indent=4))
