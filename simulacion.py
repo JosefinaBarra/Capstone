@@ -1,168 +1,158 @@
 # Código: https://www.youtube.com/watch?v=Kmu9DNQamLw&ab_channel=PaulGrogan
 # Código: https://asadali047.medium.com/inventory-simulation-for-beginners-7ea55eb6c4f8
 
-import simpy
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
 
 class Bodega:
+    ''' Bodega con lead time de 1 semana '''
     def __init__(
-        self, env, rop, max, costo_almacenamiento, costo_orden, precio_venta, lead_time
+        self, rop, max
     ):
+        # Número de semanas simulación
+        self.semanas = 50
+
         # Condiciones iniciales de bodega
-        self.env = env
         self.rop = rop
         self.max = max
-        self.costo_almacenamiento = costo_almacenamiento
-        self.precio_venta = precio_venta
-        self.costo_orden = costo_orden
-        self.lead_time = lead_time
-        #self.demanda = demanda
+        
+        # Resultados
+        self.demanda = {}
+        self.ventas = {}
+        self.almacenamiento = {}
+        self.pedido = {}
+        self.d_insatisfecha_semanal = {}
+        self.ingresos = {}
 
         # Inventario inicial
-        self.inventario = max
+        self.inventario = [0]*self.semanas
 
-        self.balance = 0
-        self.cant_ordenada = 0
-        
-        # Listas de datos para guardar
-        self.obs = []
-        self.nivel_inventario = []
-        self.estado_balance = []
+        # Pedidos realizados
+        self.cant_ordenada = [0]*self.semanas
 
-    def generar_llegada_cliente(self):
-        return np.random.exponential(1./5)
+        # Demanda insatisfecha
+        self.demanda_insatisfecha = [0]*self.semanas
 
-    # Demanda por cliente D ~ Unif(1,4)
+        # Ingresos por venta
+        self.precio_venta = 2
+
+        # Costos
+        self.costo_pedido = 2
+        self.costo_almacenamiento = 2
+        self.costo_demanda_perdida = 5
+
+    # Demanda por semana
     def generar_demanda(self):
-        return np.random.randint(1,5)
+        for i in range(0, self.semanas):
+            #demanda_generada = np.random.normal(144.9151, 55.5326)
+            demanda_generada = np.random.uniform(61, 1725)
+            self.demanda[i] = demanda_generada
+        return self.demanda
 
-    def realizar_orden(self):
-        ''' Se crea y espera el pedido para la bodega '''
-        # Política (s,S) o min/max:
-        self.cant_ordenada = self.max
+    def pedido_semana(self, semana):
+        if self.inventario[semana] < self.rop:
+            return self.max - self.inventario[semana]
+        return 0
 
-        # Costo por orden realizada
-        self.balance -= self.cant_ordenada * self.costo_orden
-        print(f"[{round(self.env.now, 2)}] Nueva orden por: {self.max}")
-        print(f' - Costos por esta orden: {self.cant_ordenada * self.costo_orden} - Balance: {self.balance}\n')
-
-        # Política EOQ
-        # BUSCAR
-        
-        # Espero que llegue pedido
-        yield self.env.timeout(self.lead_time)
-
-        # Actualizo stock
-        self.inventario += self.cant_ordenada
-
-        # No hay ordenes pendientes
-        self.cant_ordenada = 0
-
-        print(f'[{round(self.env.now, 2)}] Orden recibida, {self.inventario} en inventario\n')
-
-    def runner_setup(self):
-        ''' Simula el funcionamiento de la bodega '''
-        while True:
-            llegada_cliente = self.generar_llegada_cliente()
-
-            # Espero llegada cliente
-            yield self.env.timeout(llegada_cliente)
-
-            # Costo almacenar hasta llegada cliente
-            self.balance -= self.inventario*self.costo_almacenamiento*llegada_cliente
-            print(f'[{round(self.env.now,2)}] Llega cliente:')
-            print(f' - Costos por almacenar: {self.inventario*self.costo_almacenamiento*llegada_cliente}')
-            print(f' - Balance: {self.balance}')
-            print(f' - Inventario: {self.inventario}\n\n')
+    def run(self):
+        self.demanda = self.generar_demanda()
+        self.inventario[0] = 0
+        for i in range(0, self.semanas):
+            # Actualizo inventario si hay pedido de semana anterior
+            if self.inventario[i-1] < self.rop:
+                self.inventario[i] = self.max - self.inventario[i-1] 
+            else:
+                self.inventario[i] = self.inventario[i-1] - self.ventas[i-1]
             
-            # Generar demanda cliente
-            self.demanda = self.generar_demanda()
+            # Reviso política (s,S)
+            self.cant_ordenada[i] = self.pedido_semana(i)
+            #print(f"\nPedido para próx semana: {self.cant_ordenada[i]}")
 
-            # Si hay stock
-            if self.demanda < self.inventario:
-                self.balance += self.precio_venta*self.demanda
-                self.inventario -= self.demanda
-                print(f'[{round(self.env.now,2)}] Realizo venta:')
-                print(f' - Vendido: {self.demanda}')
-                print(f' - Ganancias en esta venta: {self.precio_venta*self.demanda}')
-                print(f' - Balance: {self.balance}')
-                print(f' - Inventario: {self.inventario}\n\n')
-            
-            # Stock justo -> Vendo todo -> Quedo sin stock
-            elif self.demanda == self.inventario:
-                self.balance += self.precio_venta*self.demanda
-                self.inventario -= self.demanda
-                print(f'[{round(self.env.now,2)}] Realizo venta:')
-                print(f' - Vendido: {self.demanda}')
-                print(f' - Ganancias en esta venta: {self.precio_venta*self.demanda}')
-                print(f' - Balance: {self.balance}')
-                print(f' - Inventario: {self.inventario}\n\n')
-            
-            # Stock insuficiente
-            elif self.demanda > self.inventario:
-                print(f'[{round(self.env.now)}] NO TENEMOS STOCK!!\n\n')
+            # Reviso inventario para venta
+            demanda = self.demanda[i]
+            if demanda <= self.inventario[i]:
+                self.ventas[i] = demanda
 
-            # Revisión continua: Si Inventario < min Y no hay pedido en camino
-            if self.inventario < self.rop and self.cant_ordenada == 0:
-                print(f'REVISANDO STOCK: REALIZO ORDEN')
-                self.env.process(self.realizar_orden())
-    
-    def observe(self):
-        ''' Revisión continua del funcionamiento de la bodega '''
-        while True:
-            self.obs.append(self.env.now)
-            self.nivel_inventario.append(self.inventario)
-            self.estado_balance.append(self.balance)
-            yield self.env.timeout(0.1)
-    
+            # Vendo todo el inventario
+            else:
+                self.ventas[i] = self.inventario[i]
+                self.demanda_insatisfecha[i] = demanda - self.inventario[i]
+
+            # Costos al final de la semana
+            self.almacenamiento[i] = (self.inventario[i] - self.ventas[i])*self.costo_almacenamiento
+            self.pedido[i] = self.cant_ordenada[i]*self.costo_pedido
+            self.d_insatisfecha_semanal[i] = self.demanda_insatisfecha[i]*self.costo_demanda_perdida
+            self.ingresos[i] = self.ventas[i]*self.precio_venta
+            
     def guardar_datos(self):
         ''' Exporto datos de la bodega en archivo excel '''
-        col1 = "Tiempo"
-        col2 = "Inventario actual"
-        col3 = "Balance"
+        col1 = "Semana"
+        col2 = "Demanda"
+        col3 = "Inventario"
+        col4 = "Ventas"
+        col5 = "Pedidos"
+        col6 = "Demanda insatisfecha"
 
         data = pd.DataFrame({
-            col1:self.obs,
-            col2:self.nivel_inventario,
-            col3:self.estado_balance
+            col1:list(self.demanda.keys()),
+            col2:list(self.demanda.values()),
+            col3:self.inventario,
+            col4:list(self.ventas.values()),
+            col5:self.cant_ordenada,
+            col6:self.demanda_insatisfecha
         })
         data.to_excel('sample_data.xlsx', sheet_name='sheet1', index=False)
+    
+    # Se calculan los kpi
+    def nivel_servicio(self):
+        total_demanda = sum(self.demanda.values())
+        total_ventas = sum(self.ventas.values())
+        return total_ventas/total_demanda
+    
+    def calcular_costos(self):
+        costos = {}
+        total_pedidos = sum(self.pedido.values())
+        costos["Pedidos"] = total_pedidos
+
+        total_almacenamiento = sum(self.almacenamiento.values())
+        costos["Almacenamiento"] = total_almacenamiento
+
+        total_d_perdida = sum(self.d_insatisfecha_semanal.values())
+        costos["Falta existencias"] = total_d_perdida
+
+        total = total_almacenamiento+total_d_perdida+total_pedidos
+        costos["Total"] = total 
+
+        return costos
+    
+    def rotacion_inventario(self):
+        pass
+
+    def perdida_obsolescencia(self):
+        pass
+
+    def precision_demanda_pronosticada(self):
+        pass
+
+    def rotura_stock(self):
+        pedido_no_satisfecho = sum(self.demanda_insatisfecha)
+        pedidos_totales = sum(self.demanda.values())
+
+        return pedido_no_satisfecho/pedidos_totales
+
+    def guardar_kpi(self):
+        nivel_servicio = self.nivel_servicio()
+        costos_totales = self.calcular_costos()
+        rotura_stock = self.rotura_stock()
+        return {"Nivel servicio": nivel_servicio, "Costo inventario": costos_totales, "Rotura de stock": rotura_stock}
+        
     
     def grafico(self):
         ''' Crea gráfico día vs inventario '''
         plt.figure()
-        plt.step(self.obs, self.nivel_inventario, where='post')
-        plt.xlabel("Días")
+        plt.step(list(range(0, self.semanas)), self.inventario, where='post')
+        plt.xlabel("Semanas")
         plt.ylabel("Inventario")
         plt.show()
-
-
-def run(simulation:Bodega,until:float):
-    simulation.env.process(simulation.runner_setup())
-    simulation.env.process(simulation.observe())
-    simulation.env.run(until=until)
-
-
-np.random.seed(0)
-
-s = Bodega(
-    simpy.Environment(),
-    rop=10,
-    max=30,
-    costo_almacenamiento=2,
-    costo_orden=50,
-    precio_venta=100,
-    lead_time=2
-)
-
-# Corro simulación de bodega hasta tiempo = 8
-run(s,until=8)
-
-# SE genera el gráfico
-s.grafico()
-
-# Guardo datos
-s.guardar_datos()
