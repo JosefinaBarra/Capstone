@@ -8,7 +8,7 @@ from simulacion import Bodega
 np.random.seed(0)
 excel = pd.ExcelWriter('sample_data.xlsx')
 
-valores_politica = [(60,2000), (70,2000), (60,1000), (70,1000)]
+valores_politica = [(60,1000), (70,1000), (60,2000), (70,2000)]
 replicas = 30
 
 resultado = {}
@@ -24,7 +24,6 @@ for valores in valores_politica:
 #print("\n")
 
 # Se guardan kpi por repetición en excel
-
 for i in range(0, len(valores_politica)):
     politica = resultado[str(valores_politica[i])]
     rows = []
@@ -34,6 +33,8 @@ for i in range(0, len(valores_politica)):
 
     df = pd.DataFrame(rows, columns = list(kpi.keys()))   
     df.to_excel(excel, sheet_name='kpi'+str(valores_politica[i]), index=True)
+    
+    # Muestra el promedio de los kpi por política
     print(valores_politica[i])
     print(df.mean())
     print("\n")

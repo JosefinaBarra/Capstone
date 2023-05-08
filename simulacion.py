@@ -4,7 +4,7 @@ import pandas as pd
 
 
 class Bodega:
-    ''' Bodega con lead time de 1 semana '''
+    ''' Bodega con leadtime de 1 semana '''
     def __init__(
         self, rop, max
     ):
@@ -42,6 +42,7 @@ class Bodega:
 
     # Demanda por semana
     def generar_demanda(self):
+        ''' Genera demanda semanal según distribución '''
         for i in range(0, self.semanas):
             #demanda_generada = np.random.normal(144.9151, 55.5326)
             demanda_generada = np.random.uniform(61, 1725)
@@ -50,11 +51,13 @@ class Bodega:
         return self.demanda
 
     def pedido_semana(self, semana):
+        ''' Retorna la cantidad a pedir según la política '''
         if self.inventario[semana] < self.rop:
             return self.max - self.inventario[semana]
         return 0
 
     def run(self):
+        ''' Corre simulación de bodega por semana'''
         self.demanda = self.generar_demanda()
         self.inventario[0] = 0
         for i in range(0, self.semanas):
@@ -85,7 +88,8 @@ class Bodega:
             self.ingresos[i] = self.ventas[i]*self.precio_venta
             
     def guardar_datos(self, excel, politica):
-        ''' Exporto datos de la bodega en archivo excel '''
+        ''' Exporto datos de la bodega en archivo excel según la política ingresada '''
+
         col1 = "Semana"
         col2 = "Demanda"
         col3 = "Inventario"
@@ -105,11 +109,13 @@ class Bodega:
     
     # Se calculan los kpi
     def nivel_servicio(self):
+        ''' Calcula kpi del nivel de servicio '''
         total_demanda = sum(self.demanda.values())
         total_ventas = sum(self.ventas.values())
         return total_ventas/total_demanda
     
     def calcular_costos(self):
+        ''' Calcula costos de la bodega '''
         total_pedidos = sum(self.pedido.values())
 
         total_almacenamiento = sum(self.almacenamiento.values())
@@ -130,12 +136,14 @@ class Bodega:
         pass
 
     def rotura_stock(self):
+        ''' Se calcula la proporción de pedidos perdidos'''
         pedido_no_satisfecho = sum(self.demanda_insatisfecha)
         pedidos_totales = sum(self.demanda.values())
 
         return pedido_no_satisfecho/pedidos_totales
 
     def guardar_kpi(self):
+        ''' Retorna valores de kpi en diccionario '''
         nivel_servicio = self.nivel_servicio()
         costos_totales = self.calcular_costos()
         rotura_stock = self.rotura_stock()
@@ -150,7 +158,7 @@ class Bodega:
         
     
     def grafico(self):
-        ''' Crea gráfico día vs inventario '''
+        ''' Crea gráfico semanas vs nivel de inventario '''
         plt.figure()
         plt.step(list(range(0, self.semanas)), self.inventario, where='post')
         plt.xlabel("Semanas")
