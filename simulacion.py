@@ -48,6 +48,7 @@ class Bodega:
         for i in range(0, self.semanas):
             #demanda_generada = np.random.normal(144.9151, 55.5326)
             demanda_generada = np.random.uniform(61, 1725)
+            #demanda_generada = np.random.gamma(3.002389619, 0.006414003)
             self.demanda[i] = demanda_generada
         return self.demanda
 
@@ -112,20 +113,15 @@ class Bodega:
         return total_ventas/total_demanda
     
     def calcular_costos(self):
-        costos = {}
         total_pedidos = sum(self.pedido.values())
-        costos["Pedidos"] = total_pedidos
 
         total_almacenamiento = sum(self.almacenamiento.values())
-        costos["Almacenamiento"] = total_almacenamiento
 
         total_d_perdida = sum(self.d_insatisfecha_semanal.values())
-        costos["Falta existencias"] = total_d_perdida
 
         total = total_almacenamiento+total_d_perdida+total_pedidos
-        costos["Total"] = total 
 
-        return costos
+        return [total_pedidos, total_almacenamiento, total_d_perdida, total]
     
     def rotacion_inventario(self):
         pass
@@ -146,7 +142,14 @@ class Bodega:
         nivel_servicio = self.nivel_servicio()
         costos_totales = self.calcular_costos()
         rotura_stock = self.rotura_stock()
-        return {"Nivel servicio": nivel_servicio, "Costo inventario": costos_totales, "Rotura de stock": rotura_stock}
+        return {
+            "Nivel servicio": nivel_servicio,
+            "Costo pedidos": costos_totales[0],
+            "Costo almacenamiento": costos_totales[1],
+            "Costo demanda insatisfecha": costos_totales[2],
+            "Costo total": costos_totales[3],
+            "Rotura de stock": rotura_stock
+        }
         
     
     def grafico(self):
