@@ -1,6 +1,3 @@
-# Código: https://www.youtube.com/watch?v=Kmu9DNQamLw&ab_channel=PaulGrogan
-# Código: https://asadali047.medium.com/inventory-simulation-for-beginners-7ea55eb6c4f8
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -87,7 +84,7 @@ class Bodega:
             self.d_insatisfecha_semanal[i] = self.demanda_insatisfecha[i]*self.costo_demanda_perdida
             self.ingresos[i] = self.ventas[i]*self.precio_venta
             
-    def guardar_datos(self):
+    def guardar_datos(self, excel, politica):
         ''' Exporto datos de la bodega en archivo excel '''
         col1 = "Semana"
         col2 = "Demanda"
@@ -104,7 +101,7 @@ class Bodega:
             col5:self.cant_ordenada,
             col6:self.demanda_insatisfecha
         })
-        data.to_excel('sample_data.xlsx', sheet_name='sheet1', index=False)
+        data.to_excel(excel, sheet_name=politica, index=False)
     
     # Se calculan los kpi
     def nivel_servicio(self):
