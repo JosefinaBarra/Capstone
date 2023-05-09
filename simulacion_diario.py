@@ -63,7 +63,7 @@ class Bodega:
     def pedido_semana(self, dia, politica):
         ''' Retorna la cantidad a pedir según la política '''
         if politica == "(s,S)":
-            if self.inventario[dia] < self.rop:
+            if self.inventario[dia] <= self.rop:
                 return self.max - self.inventario[dia]
             return 0
         elif politica == "EOQ":

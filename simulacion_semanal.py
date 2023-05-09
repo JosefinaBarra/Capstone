@@ -60,7 +60,7 @@ class Bodega:
     def pedido_semana(self, semana, politica):
         ''' Retorna la cantidad a pedir según la política '''
         if politica == "(s,S)":
-            if self.inventario[semana] < self.rop:
+            if self.inventario[semana] <= self.rop:
                 return self.max - self.inventario[semana]
             return 0
         elif politica == "EOQ":
@@ -75,18 +75,18 @@ class Bodega:
             # Actualizo inventario si hay pedido de semana anterior
             #print(f"----- SEMANA {i} -----")
             if i >= 1:
-                if self.inventario[i-1] < self.rop:
-                    self.inventario[i] = self.max - self.inventario[i-1] 
-                    print(f'Recibo pedido de semana {i-1} de :{self.max - self.inventario[i-1] }')
-                    print(f'Inventario = {self.inventario[i]}\n')
+                if self.inventario[i-1] <= self.rop:
+                    self.inventario[i] = self.inventario[i-1] - self.ventas[i-1] + self.cant_ordenada[i-1]
+                    #print(f'Recibo pedido de semana {i-1} de :{self.max - self.inventario[i-1] }')
+                    #print(f'Inventario = {self.inventario[i]}\n')
                 else:
                     self.inventario[i] = self.inventario[i-1] - self.ventas[i-1]
-                    print("No hay pedidos por recibir")
-                    print(f'Inventario = {self.inventario[i]}\n')
+                    #print("No hay pedidos por recibir")
+                    #print(f'Inventario = {self.inventario[i]}\n')
             
             # Se calcula la cantidad a ordenar según política
             self.cant_ordenada[i] = self.pedido_semana(i, self.politica)
-            print(f"\nPedido para próx semana: {self.cant_ordenada[i]}")
+            #print(f"\nPedido para próx semana: {self.cant_ordenada[i]}")
 
             # Reviso inventario para venta
             demanda = self.demanda[i]
@@ -102,8 +102,8 @@ class Bodega:
                 else: 
                     self.ventas[i] = 0
                 self.demanda_insatisfecha[i] = demanda - self.inventario[i]
-                print(f"QUIEBRE DE STOCK: D={demanda} I={self.inventario[i]} - INSATISFECHO: {self.demanda_insatisfecha[i]}")
-                print(f'Inventario = {self.inventario[i] - self.ventas[i]}\n')
+                #print(f"QUIEBRE DE STOCK: D={demanda} I={self.inventario[i]} - INSATISFECHO: {self.demanda_insatisfecha[i]}")
+                #print(f'Inventario = {self.inventario[i] - self.ventas[i]}\n')
 
             # Costos al final de la semana
             self.almacenamiento[i] = (self.inventario[i] - self.ventas[i])*self.costo_almacenamiento
@@ -172,8 +172,8 @@ class Bodega:
         ''' [1] Función de stackoverflow: Cuenta ocurrencias seguidas de demanda insatisfecha != 0'''
         d = {'D':scores(self.demanda_insatisfecha)}
         maximo = max(list(d["D"]))
-        r = '\n'.join([f'Días | {" | ".join(d.keys())} ', '-'*15]+[f'{i}          {"   ".join(str(b.get(i, 0)) for b in d.values())}' for i in range(0, maximo+1)])        
-        print(r)
+        #r = '\n'.join([f'Días | {" | ".join(d.keys())} ', '-'*15]+[f'{i}          {"   ".join(str(b.get(i, 0)) for b in d.values())}' for i in range(0, maximo+1)])        
+        #print(r)
 
         datos = {}
         for i in range(0, maximo + 1):
