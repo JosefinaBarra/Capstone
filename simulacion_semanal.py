@@ -2,14 +2,21 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+import itertools as it, collections as _col
+
+# [1] Función de: https://stackoverflow.com/questions/57809568/counting-sequential-occurrences-in-a-list-and
+def scores(l):
+  return _col.Counter([len(list(b)) for a, b in it.groupby(l, key=lambda x:x != 0) if a])
+
 
 class Bodega:
     ''' Bodega con leadtime de 1 semana '''
     def __init__(
-        self, rop, max
+        self, rop, max, politica
     ):
         # Número de semanas simulación
         self.semanas = 50
+        self.politica = politica
 
         # Condiciones iniciales de bodega
         self.rop = rop
@@ -50,52 +57,71 @@ class Bodega:
             self.demanda[i] = demanda_generada
         return self.demanda
 
-    def pedido_semana(self, semana):
+    def pedido_semana(self, semana, politica):
         ''' Retorna la cantidad a pedir según la política '''
-        if self.inventario[semana] < self.rop:
-            return self.max - self.inventario[semana]
-        return 0
+        if politica == "(s,S)":
+            if self.inventario[semana] < self.rop:
+                return self.max - self.inventario[semana]
+            return 0
+        elif politica == "EOQ":
+            return 0
 
     def run(self):
         ''' Corre simulación de bodega por semana'''
         self.demanda = self.generar_demanda()
         self.inventario[0] = 0
+
         for i in range(0, self.semanas):
             # Actualizo inventario si hay pedido de semana anterior
-            if self.inventario[i-1] < self.rop:
-                self.inventario[i] = self.max - self.inventario[i-1] 
-            else:
-                self.inventario[i] = self.inventario[i-1] - self.ventas[i-1]
+            #print(f"----- SEMANA {i} -----")
+            if i >= 1:
+                if self.inventario[i-1] < self.rop:
+                    self.inventario[i] = self.max - self.inventario[i-1] 
+                    print(f'Recibo pedido de semana {i-1} de :{self.max - self.inventario[i-1] }')
+                    print(f'Inventario = {self.inventario[i]}\n')
+                else:
+                    self.inventario[i] = self.inventario[i-1] - self.ventas[i-1]
+                    print("No hay pedidos por recibir")
+                    print(f'Inventario = {self.inventario[i]}\n')
             
-            # Reviso política (s,S)
-            self.cant_ordenada[i] = self.pedido_semana(i)
-            #print(f"\nPedido para próx semana: {self.cant_ordenada[i]}")
+            # Se calcula la cantidad a ordenar según política
+            self.cant_ordenada[i] = self.pedido_semana(i, self.politica)
+            print(f"\nPedido para próx semana: {self.cant_ordenada[i]}")
 
             # Reviso inventario para venta
             demanda = self.demanda[i]
             if demanda <= self.inventario[i]:
                 self.ventas[i] = demanda
+                #print(f"VENDO: {demanda}")
+                #print(f'Inventario = {self.inventario[i] - self.ventas[i]}\n')
 
             # Vendo todo el inventario
             else:
-                self.ventas[i] = self.inventario[i]
+                if self.inventario[i] > 0:
+                    self.ventas[i] = self.inventario[i]
+                else: 
+                    self.ventas[i] = 0
                 self.demanda_insatisfecha[i] = demanda - self.inventario[i]
+                print(f"QUIEBRE DE STOCK: D={demanda} I={self.inventario[i]} - INSATISFECHO: {self.demanda_insatisfecha[i]}")
+                print(f'Inventario = {self.inventario[i] - self.ventas[i]}\n')
 
             # Costos al final de la semana
             self.almacenamiento[i] = (self.inventario[i] - self.ventas[i])*self.costo_almacenamiento
             self.pedido[i] = self.cant_ordenada[i]*self.costo_pedido
-            self.d_insatisfecha_semanal[i] = self.demanda_insatisfecha[i]*self.costo_demanda_perdida
+            self.d_insatisfecha_semanal[i] = self.demanda_insatisfecha[i]*self.costo_demanda_perdida + self.demanda_insatisfecha[i]*self.precio_venta
             self.ingresos[i] = self.ventas[i]*self.precio_venta
+        self.periodos_sin_stock()
             
     def guardar_datos(self, excel, politica):
         ''' Exporto datos de la bodega en archivo excel según la política ingresada '''
 
-        col1 = "Semana"
-        col2 = "Demanda"
-        col3 = "Inventario"
-        col4 = "Ventas"
-        col5 = "Pedidos"
-        col6 = "Demanda insatisfecha"
+        col1 = "Semanas"
+        col2 = "Demanda [unidades]"
+        col3 = "Inventario [unidades]"
+        col4 = "Ventas [$]"
+        col5 = "Pedidos [unidades]"
+        col6 = "Demanda insatisfecha [unidades]"
+        col7 = "Costo monetario stock out [$]"
 
         data = pd.DataFrame({
             col1:list(self.demanda.keys()),
@@ -103,7 +129,8 @@ class Bodega:
             col3:self.inventario,
             col4:list(self.ventas.values()),
             col5:self.cant_ordenada,
-            col6:self.demanda_insatisfecha
+            col6:self.demanda_insatisfecha,
+            col7:list(self.d_insatisfecha_semanal.values())
         })
         data.to_excel(excel, sheet_name=politica, index=False)
     
@@ -126,35 +153,56 @@ class Bodega:
 
         return [total_pedidos, total_almacenamiento, total_d_perdida, total]
     
-    def rotacion_inventario(self):
-        pass
-
-    def perdida_obsolescencia(self):
-        pass
-
-    def precision_demanda_pronosticada(self):
-        pass
-
     def rotura_stock(self):
         ''' Se calcula la proporción de pedidos perdidos'''
         pedido_no_satisfecho = sum(self.demanda_insatisfecha)
         pedidos_totales = sum(self.demanda.values())
 
         return pedido_no_satisfecho/pedidos_totales
-
+    
+    def unidades_sin_vender(self):
+        ''' Total de productos sin vender por quiebre de stock '''
+        return sum(self.demanda_insatisfecha)
+    
+    def perdida_monetaria_stock_out(self):
+        ''' Retorna el valor monetario por las unidades no vendidas'''
+        return sum(self.demanda_insatisfecha)*self.precio_venta
+    
+    def periodos_sin_stock(self):
+        ''' [1] Función de stackoverflow: Cuenta ocurrencias seguidas de demanda insatisfecha != 0'''
+        d = {'D':scores(self.demanda_insatisfecha)}
+        r = '\n'.join([f'Días | {" | ".join(d.keys())} ', '-'*15]+[f'{i}          {"   ".join(str(b.get(i, 0)) for b in d.values())}' for i in range(1, 6)])
+        minimo = min(list(d["D"]))
+        maximo = max(list(d["D"]))
+        i = minimo
+        datos = {}
+        for i in range(0, maximo + 1):
+            datos[str(i)+"semanas"] = d["D"][i]
+        return datos
+            
     def guardar_kpi(self):
         ''' Retorna valores de kpi en diccionario '''
         nivel_servicio = self.nivel_servicio()
         costos_totales = self.calcular_costos()
         rotura_stock = self.rotura_stock()
-        return {
+        total_sin_vender = self.unidades_sin_vender()
+        perdida_monetaria_stock_out = self.perdida_monetaria_stock_out()
+        periodos_sin_stock = self.periodos_sin_stock()
+
+        data = {
             "Nivel servicio": nivel_servicio,
             "Costo pedidos": costos_totales[0],
             "Costo almacenamiento": costos_totales[1],
             "Costo demanda insatisfecha": costos_totales[2],
             "Costo total": costos_totales[3],
-            "Rotura de stock": rotura_stock
+            "Rotura de stock": rotura_stock,
+            "Cantidad total sin vender": total_sin_vender,
+            "Pérdida monetaria quiebre stock": perdida_monetaria_stock_out
         }
+        periodos = periodos_sin_stock
+        for p in periodos:
+            data[p] = periodos[p]
+        return data
         
     
     def grafico(self):
