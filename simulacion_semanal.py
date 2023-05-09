@@ -171,13 +171,14 @@ class Bodega:
     def periodos_sin_stock(self):
         ''' [1] Función de stackoverflow: Cuenta ocurrencias seguidas de demanda insatisfecha != 0'''
         d = {'D':scores(self.demanda_insatisfecha)}
-        r = '\n'.join([f'Días | {" | ".join(d.keys())} ', '-'*15]+[f'{i}          {"   ".join(str(b.get(i, 0)) for b in d.values())}' for i in range(1, 6)])
-        minimo = min(list(d["D"]))
         maximo = max(list(d["D"]))
-        i = minimo
+        r = '\n'.join([f'Días | {" | ".join(d.keys())} ', '-'*15]+[f'{i}          {"   ".join(str(b.get(i, 0)) for b in d.values())}' for i in range(0, maximo+1)])        
+        print(r)
+
         datos = {}
         for i in range(0, maximo + 1):
-            datos[str(i)+"semanas"] = d["D"][i]
+            datos[str(i)+"semanas seguidas"] = d["D"][i]
+        datos.pop("0semanas seguidas")
         return datos
             
     def guardar_kpi(self):
@@ -189,15 +190,15 @@ class Bodega:
         perdida_monetaria_stock_out = self.perdida_monetaria_stock_out()
         periodos_sin_stock = self.periodos_sin_stock()
 
-        data = {
+        data =  {
             "Nivel servicio": nivel_servicio,
-            "Costo pedidos": costos_totales[0],
-            "Costo almacenamiento": costos_totales[1],
-            "Costo demanda insatisfecha": costos_totales[2],
-            "Costo total": costos_totales[3],
+            "Costo pedidos [$]": costos_totales[0],
+            "Costo almacenamiento [$]": costos_totales[1],
+            "Costo demanda insatisfecha [$]": costos_totales[2],
+            "Costo total [$]": costos_totales[3],
             "Rotura de stock": rotura_stock,
-            "Cantidad total sin vender": total_sin_vender,
-            "Pérdida monetaria quiebre stock": perdida_monetaria_stock_out
+            "Cantidad total sin vender [unidades]": total_sin_vender,
+            "Pérdida monetaria quiebre stock [$]": perdida_monetaria_stock_out
         }
         
         # Semanas seguidas sin stock
