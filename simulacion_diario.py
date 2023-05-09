@@ -208,6 +208,7 @@ class Bodega:
             "Pérdida monetaria quiebre stock": perdida_monetaria_stock_out
         }
 
+        # Semanas seguidas sin stock
         periodos = periodos_sin_stock
         for p in periodos:
             data[p] = periodos[p]
