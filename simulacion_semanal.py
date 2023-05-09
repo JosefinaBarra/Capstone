@@ -158,7 +158,7 @@ class Bodega:
         pedido_no_satisfecho = sum(self.demanda_insatisfecha)
         pedidos_totales = sum(self.demanda.values())
 
-        return pedido_no_satisfecho/pedidos_totales
+        return (pedido_no_satisfecho/pedidos_totales)*100
     
     def unidades_sin_vender(self):
         ''' Total de productos sin vender por quiebre de stock '''
@@ -177,8 +177,8 @@ class Bodega:
 
         datos = {}
         for i in range(0, maximo + 1):
-            datos[str(i)+"semanas seguidas"] = d["D"][i]
-        datos.pop("0semanas seguidas")
+            datos[str(i)+" semanas seguidas [ocurrencias]"] = d["D"][i]
+        datos.pop("0 semanas seguidas [ocurrencias]")
         return datos
             
     def guardar_kpi(self):
@@ -196,7 +196,7 @@ class Bodega:
             "Costo almacenamiento [$]": costos_totales[1],
             "Costo demanda insatisfecha [$]": costos_totales[2],
             "Costo total [$]": costos_totales[3],
-            "Rotura de stock": rotura_stock,
+            "Rotura de stock [%]": rotura_stock,
             "Cantidad total sin vender [unidades]": total_sin_vender,
             "Pérdida monetaria quiebre stock [$]": perdida_monetaria_stock_out
         }

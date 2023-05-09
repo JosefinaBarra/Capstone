@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-#from simulacion_diario import Bodega
-from simulacion_semanal import Bodega
+from simulacion_diario import Bodega
+#from simulacion_semanal import Bodega
 
 np.random.seed(0)
 pd.set_option('display.float_format', lambda x: '%.3f' % x)
