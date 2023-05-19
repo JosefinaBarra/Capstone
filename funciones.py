@@ -106,10 +106,11 @@ def generar_demanda(periodos):
         demanda = {}
         for i in range(0, periodos):
             #demanda_generada = np.random.normal(144.9151, 55.5326)
-            demanda_generada = np.random.uniform(61, 1725)
+            #demanda_generada = np.random.uniform(61, 1725)
             #demanda_generada = np.random.gamma(3.002389619, 0.006414003)
             #demanda_generada = np.random.poisson(0.9)
             #demanda_generada = np.random.uniform(0, 5)
-            demanda_generada = np.random.poisson(1808.913)
+            #demanda_generada = np.random.poisson(1808.913)
+            demanda_generada = np.random.poisson(3.825)
             demanda[i] = demanda_generada
         return demanda

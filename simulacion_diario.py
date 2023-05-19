@@ -12,27 +12,33 @@ def scores(l):
 class Bodega:
     ''' Bodega con leadtime de 7 dias '''
     def __init__(
-        self, s, S, politica, periodos
+        self, s, S, politica, periodos, demanda
     ):
-        # Número de semanas simulación
+        # Número de dias de simulación
         self.dias = periodos
         self.politica = politica
+        self.demanda = demanda
 
-        if self.politica == "(s,S)":
-            self.rop = s
-        
+        # Ingresos por venta
+        self.precio_venta = 6260
+
+        # Costos
+        self.costo_pedido = 4201
+        self.costo_almacenamiento = 12
+        self.costo_demanda_perdida = 6260
+
         # Lead time pedido
-        self.lead_time = 7
+        self.lead_time = 2
 
         self.max = S
         
+        if self.politica == "(s,S)":
+            self.rop = s
+        elif self.politica == "EOQ":
+            self.rop = self.rop_eoq()
+        
         # Resultados
-        self.demanda = {}
         self.ventas = {}
-        self.almacenamiento = {}
-        self.pedido = {}
-        self.d_insatisfecha_diaria = {}
-        self.ingresos = {}
 
         # Inventario inicial
         self.inventario = [0]*self.dias
@@ -43,14 +49,8 @@ class Bodega:
         # Demanda insatisfecha
         self.demanda_insatisfecha = [0]*self.dias
 
-        # Ingresos por venta
-        self.precio_venta = 2
-
-        # Costos
-        self.costo_pedido = 2
-        self.costo_almacenamiento = 2
-        self.costo_demanda_perdida = 5
-
+        # Productos almacenados al final del día i
+        self.almacenamiento = [0]*self.dias
 
     # Demanda por dia
     def generar_demanda(self):
@@ -58,12 +58,14 @@ class Bodega:
         for i in range(0, self.dias):
             #demanda_generada = np.random.normal(144.9151, 55.5326)
             #demanda_generada = np.random.uniform(61, 1725)
-            demanda_generada = np.random.uniform(0, 5)
+            #demanda_generada = np.random.uniform(0, 5)
             #demanda_generada = np.random.gamma(3.002389619, 0.006414003)
             #demanda_generada = np.random.poisson(0.9)
+            demanda_generada = np.random.poisson(3.825)
             self.demanda[i] = demanda_generada
         return self.demanda
     
+# -----  ----- POLÍTICA EOQ ----- ----- 
     def pedido_semana(self, dia, politica):
         ''' Retorna la cantidad a pedir según la política '''
         if politica == "(s,S)":
@@ -71,60 +73,70 @@ class Bodega:
                 return self.max - self.inventario[dia]
             return 0
         elif politica == "EOQ":
-            return self.Q_optimo
+            pedido = np.ceil(self.eoq())
+            print(f"PIDO = {pedido}")
+            return pedido
 
     def eoq(self):
-        D = np.sum(list(self.demanda.values()))
-        S = self.costo_pedido
-        H = self.costo_almacenamiento
-        Q_optimo = np.sqrt(2*D*S/H)
+        demanda_total = np.sum(list(self.demanda.values()))
+        Q_optimo = np.sqrt((2*demanda_total*self.costo_pedido)/(self.costo_almacenamiento*self.dias))
+        print(f"(2 * {demanda_total} * {self.costo_pedido}) / ({self.costo_almacenamiento} * {self.dias}")
+        print(f"EOQ = {Q_optimo}\n")
         return Q_optimo
 
     def rop_eoq(self):
-        d = np.mean(list(self.demanda.values()))
-        D = np.sum(list(self.demanda.values()))
-        N = D / self.Q_optimo
+        demanda_promedio = np.mean(list(self.demanda.values()))
+        demanda_total = np.sum(list(self.demanda.values()))
+        
+        # Número esperado de ordenes
+        N = demanda_total / self.eoq()
+       
+        # Punto de reorden
         L = self.dias / N
-        R = d*L
+        R = demanda_promedio*L
+        print(f"N = {np.ceil(N)}, L = {np.ceil(L)}, R = {np.ceil(R)}")
         return R
+
+# ----- ----- ----- ----- ----- ----- ----- 
 
     def run(self):
         ''' Corre simulación de bodega por dia'''
-        self.demanda = self.generar_demanda()
+        #self.demanda = self.generar_demanda()
         self.inventario[0] = 0
-        self.Q_optimo = self.eoq()
         encamino = False
+        print(f'En camino? {encamino} ')
 
         if self.politica == "EOQ":
             self.rop = self.rop_eoq()
 
         for i in range(0, self.dias):
-            # Actualizo inventario si hay pedido en camino
-            #print(f"----- DIA {i} -----")
+            print(f"----- DIA {i} -----")
+
+            # ACTUALIZO PEDIDO
             if i >= self.lead_time and self.cant_ordenada[i-self.lead_time] != 0:
                 self.inventario[i] = (self.inventario[i-1] - self.ventas[i-1]) + self.cant_ordenada[i-self.lead_time]
                 encamino = False
-                #print(f'Recibo pedido de semana {i-self.lead_time} de :{self.cant_ordenada[i-self.lead_time]}')
-                #print(f'Inventario = {self.inventario[i]}\nEn camino {encamino}\n')
+                print(f'Recibo pedido del día {i-self.lead_time} por :{self.cant_ordenada[i-self.lead_time]}')
+                print(f'Inventario actualizado = {self.inventario[i]}\nEn camino? {encamino}\n')
             elif i > 1:
                 self.inventario[i] = self.inventario[i-1] - self.ventas[i-1]
-                #print("No hay pedidos por recibir")
-                #print(f'Inventario = {self.inventario[i]}\n')
+                print("No hay pedidos por recibir")
+                print(f'Inventario actualizado = {self.inventario[i]}\nEn camino? {encamino}\n')
             
-            # Se calcula la cantidad a ordenar según política
+            # EVALÚO POLÍTICA PARA HACER UN PEDIDO
             if not encamino:
                 self.cant_ordenada[i] = self.pedido_semana(i, self.politica)
                 if self.cant_ordenada[i] > 0:
                     encamino = True
-            #self.cant_ordenada[i] = self.pedido_semana(i, "EOQ")
-            #print(f"\nPEDIDO REALIZADO DIA {i}: {self.cant_ordenada[i]}\nEn camino {encamino}\n")
+            print(f"\nPEDIDO REALIZADO DIA {i}: {self.cant_ordenada[i]}\nEn camino {encamino}\n")
 
-            # Reviso inventario para venta
+            # REVISO CANTIDAD QUE VENDO
             demanda = self.demanda[i]
+            # Cumplo con la demanda
             if demanda <= self.inventario[i]:
                 self.ventas[i] = demanda
-                #print(f"VENDO: {demanda}")
-                #print(f'Inventario = {self.inventario[i] - self.ventas[i]}\n')
+                print(f"VENDO: {demanda}")
+                print(f'Debería quedar en Inventario = {self.inventario[i] - self.ventas[i]}\n')
 
             # Vendo todo el inventario
             else:
@@ -133,14 +145,12 @@ class Bodega:
                 else:
                     self.ventas[i] = 0
                 self.demanda_insatisfecha[i] = demanda - self.inventario[i]
-                #print(f"QUIEBRE DE STOCK: D={demanda} I={self.inventario[i]} - INSATISFECHO: {self.demanda_insatisfecha[i]}")
-                #print(f'Inventario = {self.inventario[i] - self.ventas[i]}\n')
+                print(f"QUIEBRE DE STOCK: D={demanda} I={self.inventario[i]} - INSATISFECHO: {self.demanda_insatisfecha[i]}")
+                print(f'Debería quedan en Inventario = {self.inventario[i] - self.ventas[i]}\n')
 
-            # Costos al final del dia
-            self.almacenamiento[i] = (self.inventario[i] - self.ventas[i])*self.costo_almacenamiento
-            self.pedido[i] = self.cant_ordenada[i]*self.costo_pedido
-            self.d_insatisfecha_diaria[i] = self.demanda_insatisfecha[i]*self.costo_demanda_perdida + self.demanda_insatisfecha[i]*self.precio_venta
-            self.ingresos[i] = self.ventas[i]*self.precio_venta
+            # Guardo productos que se mantuvieron en bodega durante el día i
+            self.almacenamiento[i] = (self.inventario[i] - self.ventas[i])
+        
         self.periodos_sin_stock()
             
     def guardar_datos(self, excel, politica):
@@ -165,7 +175,8 @@ class Bodega:
         })
         data.to_excel(excel, sheet_name=politica, index=False)
     
-    # Se calculan los kpi
+
+# ----- ----- Se calculan los kpi ----- ----- 
     def nivel_servicio(self):
         ''' Calcula kpi del nivel de servicio '''
         total_demanda = sum(self.demanda.values())
@@ -174,28 +185,31 @@ class Bodega:
     
     def calcular_costos(self):
         ''' Calcula costos de la bodega '''
-        total_pedidos = sum(self.pedido.values())
+        total_pedidos = sum(self.cant_ordenada)
+        costo_pedidos = total_pedidos * self.costo_pedido
 
-        total_almacenamiento = sum(self.almacenamiento.values())
+        total_almacenamiento = sum(self.almacenamiento)
+        costo_almacenamiento = total_almacenamiento * self.costo_almacenamiento
 
-        total_d_perdida = sum(self.d_insatisfecha_diaria.values())
+        total_demanda_perdida = sum(self.demanda_insatisfecha)
+        costo_demanda_insatisfecha = total_demanda_perdida * self.precio_venta
 
-        total = total_almacenamiento+total_d_perdida+total_pedidos
+        costo_total = costo_pedidos + costo_almacenamiento + costo_demanda_insatisfecha
 
-        return [total_pedidos, total_almacenamiento, total_d_perdida, total]
+        return costo_pedidos, costo_almacenamiento, costo_demanda_insatisfecha, costo_total
     
     def rotura_stock(self):
         ''' Se calcula la proporción de pedidos perdidos'''
-        pedido_no_satisfecho = sum(self.demanda_insatisfecha)
-        pedidos_totales = sum(self.demanda.values())
+        total_demanda_perdida = sum(self.demanda_insatisfecha)
+        total_demanda = sum(self.demanda.values())
 
-        return (pedido_no_satisfecho/pedidos_totales)*100
+        return (total_demanda_perdida/total_demanda)*100
     
     def unidades_sin_vender(self):
         ''' Total de productos sin vender por quiebre de stock '''
         return sum(self.demanda_insatisfecha)
     
-    def perdida_monetaria_stock_out(self):
+    def perdida_monetaria_quiebre_stock(self):
         ''' Retorna el valor monetario por las unidades no vendidas'''
         return sum(self.demanda_insatisfecha)*self.precio_venta
     
@@ -213,7 +227,8 @@ class Bodega:
     def guardar_kpi(self):
         ''' Retorna valores de kpi en diccionario '''
         nivel_servicio = self.nivel_servicio()
-        costos_totales = self.calcular_costos()
+        costo_pedidos, costo_almacenamiento, costo_demanda_insatisfecha, costo_total = self.calcular_costos()
+        
         rotura_stock = self.rotura_stock()
         
         periodos_sin_stock = self.periodos_sin_stock()
@@ -221,22 +236,20 @@ class Bodega:
         
         total_ventas = np.sum(list(self.ventas.values()))
         total_sin_vender = self.unidades_sin_vender()
-
-        perdida_monetaria_stock_out = total_sin_vender*self.precio_venta
                
         data =  {
             "Nivel servicio": nivel_servicio,
-            "Costo pedidos [$]": costos_totales[0],
-            "Costo almacenamiento [$]": costos_totales[1],
-            "Costo demanda insatisfecha [$]": costos_totales[2],
-            "Costo total [$]": costos_totales[3],
+            "Costo pedidos [$]": costo_pedidos,
+            "Costo almacenamiento [$]": costo_almacenamiento,
+            "Costo demanda insatisfecha [$]": costo_demanda_insatisfecha,
+            "Costo total [$]": costo_total,
             "Rotura de stock [%]": rotura_stock,
             "Cantidad total sin vender [unidades]": total_sin_vender,
-            "Pérdida monetaria quiebre stock [$]": perdida_monetaria_stock_out,
+            "Pérdida monetaria quiebre stock [$]": total_sin_vender * self.precio_venta,
             "Cantidad dias sin stock": cant_dias_sin_stock,
             "Total ventas [unidades]": total_ventas,
             "Ingresos por ventas [$]": total_ventas*self.precio_venta,
-            "Balance": total_ventas*self.precio_venta - costos_totales[3]
+            "Balance": total_ventas*self.precio_venta - costo_total
         }
 
         # Dias seguidas sin stock
@@ -252,4 +265,6 @@ class Bodega:
         plt.step(list(range(0, self.dias)), self.inventario, where='post')
         plt.xlabel("Días")
         plt.ylabel("Inventario")
+        titulo = self.politica + " : (" + str(self.rop) + ", " + str(self.max) + ")"
+        plt.title(titulo)
         plt.show()
