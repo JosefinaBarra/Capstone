@@ -74,15 +74,15 @@ class Bodega:
             return 0
         elif politica == "EOQ":
             pedido = np.ceil(self.eoq())
-            print(f"PIDO = {pedido}")
             return pedido
 
     def eoq(self):
         demanda_total = np.sum(list(self.demanda.values()))
-        Q_optimo = np.sqrt((2*demanda_total*self.costo_pedido)/(self.costo_almacenamiento*self.dias))
-        print(f"(2 * {demanda_total} * {self.costo_pedido}) / ({self.costo_almacenamiento} * {self.dias}")
-        print(f"EOQ = {Q_optimo}\n")
-        return Q_optimo
+        costo_almacenamiento_total = self.costo_almacenamiento * self.dias
+        self.Q_optimo = np.sqrt((2*demanda_total*self.costo_pedido)/(self.costo_almacenamiento*self.dias))
+        #print(f"(2 * {demanda_total} * {self.costo_pedido}) / ({self.costo_almacenamiento} * {self.dias}")
+        #print(f"EOQ = {self.Q_optimo}\n")
+        return self.Q_optimo
 
     def rop_eoq(self):
         demanda_promedio = np.mean(list(self.demanda.values()))
@@ -93,50 +93,72 @@ class Bodega:
        
         # Punto de reorden
         L = self.dias / N
+        self.tiempo_entre_pedidos = np.ceil(L)
         R = demanda_promedio*L
-        print(f"N = {np.ceil(N)}, L = {np.ceil(L)}, R = {np.ceil(R)}")
+        #print(f"N = {np.ceil(N)}, L = {np.ceil(L)}, R = {np.ceil(R)}")
         return R
 
 # ----- ----- ----- ----- ----- ----- ----- 
 
     def run(self):
         ''' Corre simulación de bodega por dia'''
-        #self.demanda = self.generar_demanda()
+        self.demanda = self.generar_demanda()
         self.inventario[0] = 0
         encamino = False
-        print(f'En camino? {encamino} ')
+        #print(f'En camino? {encamino} ')
 
         if self.politica == "EOQ":
             self.rop = self.rop_eoq()
 
         for i in range(0, self.dias):
-            print(f"----- DIA {i} -----")
+            #print(f"----- DIA {i} -----")
 
-            # ACTUALIZO PEDIDO
-            if i >= self.lead_time and self.cant_ordenada[i-self.lead_time] != 0:
-                self.inventario[i] = (self.inventario[i-1] - self.ventas[i-1]) + self.cant_ordenada[i-self.lead_time]
-                encamino = False
-                print(f'Recibo pedido del día {i-self.lead_time} por :{self.cant_ordenada[i-self.lead_time]}')
-                print(f'Inventario actualizado = {self.inventario[i]}\nEn camino? {encamino}\n')
-            elif i > 1:
-                self.inventario[i] = self.inventario[i-1] - self.ventas[i-1]
-                print("No hay pedidos por recibir")
-                print(f'Inventario actualizado = {self.inventario[i]}\nEn camino? {encamino}\n')
+            if self.politica == "(s,S)":
+                # ACTUALIZO PEDIDO
+                if i >= self.lead_time and self.cant_ordenada[i-self.lead_time] != 0:
+                    self.inventario[i] = (self.inventario[i-1] - self.ventas[i-1]) + self.cant_ordenada[i-self.lead_time]
+                    encamino = False
+                    #print(f'Recibo pedido del día {i-self.lead_time} por :{self.cant_ordenada[i-self.lead_time]}')
+                    #print(f'Inventario actualizado = {self.inventario[i]}\nEn camino? {encamino}\n')
+                elif i > 1:
+                    self.inventario[i] = self.inventario[i-1] - self.ventas[i-1]
+                    #print("No hay pedidos por recibir")
+                    #print(f'Inventario actualizado = {self.inventario[i]}\nEn camino? {encamino}\n')
+                
+                # EVALÚO POLÍTICA PARA HACER UN PEDIDO
+                if not encamino:
+                    self.cant_ordenada[i] = self.pedido_semana(i, self.politica)
+                    if self.cant_ordenada[i] > 0:
+                        encamino = True
+                #print(f"\nPEDIDO REALIZADO DIA {i}: {self.cant_ordenada[i]}\nEn camino {encamino}\n")
             
-            # EVALÚO POLÍTICA PARA HACER UN PEDIDO
-            if not encamino:
-                self.cant_ordenada[i] = self.pedido_semana(i, self.politica)
-                if self.cant_ordenada[i] > 0:
-                    encamino = True
-            print(f"\nPEDIDO REALIZADO DIA {i}: {self.cant_ordenada[i]}\nEn camino {encamino}\n")
+            elif self.politica == "EOQ":
+                if i >= self.lead_time and self.cant_ordenada[i-self.lead_time] != 0:
+                    self.inventario[i] = (self.inventario[i-1] - self.ventas[i-1]) + self.cant_ordenada[i-self.lead_time]
+                    #print(f'Recibo pedido del día {i-self.lead_time} por :{self.cant_ordenada[i-self.lead_time]}')
+                    #print(f'Inventario actualizado = {self.inventario[i]}\nEn camino? {encamino}\n')
+
+                elif i > 1:
+                    self.inventario[i] = self.inventario[i-1] - self.ventas[i-1]
+                    #print("No hay pedidos por recibir")
+                    #print(f'Inventario actualizado = {self.inventario[i]}\nEn camino? {encamino}\n')
+
+                #print(f"\n --- i({i}) % 14({self.tiempo_entre_pedidos}) = {i%self.tiempo_entre_pedidos} --- \n")
+                if i == 0:
+                    self.cant_ordenada[i] = self.Q_optimo
+                    #print(f"\nPEDIDO REALIZADO DIA {i}: {self.cant_ordenada[i]}\n")
+                if i % self.tiempo_entre_pedidos == 0 and self.rop > self.inventario[i]:
+                    self.cant_ordenada[i] = self.Q_optimo
+                    #print(f"\nPEDIDO REALIZADO DIA {i}: {self.cant_ordenada[i]}\n")
+
 
             # REVISO CANTIDAD QUE VENDO
             demanda = self.demanda[i]
             # Cumplo con la demanda
             if demanda <= self.inventario[i]:
                 self.ventas[i] = demanda
-                print(f"VENDO: {demanda}")
-                print(f'Debería quedar en Inventario = {self.inventario[i] - self.ventas[i]}\n')
+                #print(f"VENDO: {demanda}")
+                #print(f'Debería quedar en Inventario = {self.inventario[i] - self.ventas[i]}\n')
 
             # Vendo todo el inventario
             else:
@@ -145,8 +167,8 @@ class Bodega:
                 else:
                     self.ventas[i] = 0
                 self.demanda_insatisfecha[i] = demanda - self.inventario[i]
-                print(f"QUIEBRE DE STOCK: D={demanda} I={self.inventario[i]} - INSATISFECHO: {self.demanda_insatisfecha[i]}")
-                print(f'Debería quedan en Inventario = {self.inventario[i] - self.ventas[i]}\n')
+                #print(f"QUIEBRE DE STOCK: D={demanda} I={self.inventario[i]} - INSATISFECHO: {self.demanda_insatisfecha[i]}")
+                #print(f'Debería quedan en Inventario = {self.inventario[i] - self.ventas[i]}\n')
 
             # Guardo productos que se mantuvieron en bodega durante el día i
             self.almacenamiento[i] = (self.inventario[i] - self.ventas[i])
@@ -204,11 +226,7 @@ class Bodega:
         total_demanda = sum(self.demanda.values())
 
         return (total_demanda_perdida/total_demanda)*100
-    
-    def unidades_sin_vender(self):
-        ''' Total de productos sin vender por quiebre de stock '''
-        return sum(self.demanda_insatisfecha)
-    
+        
     def perdida_monetaria_quiebre_stock(self):
         ''' Retorna el valor monetario por las unidades no vendidas'''
         return sum(self.demanda_insatisfecha)*self.precio_venta
@@ -235,18 +253,24 @@ class Bodega:
         cant_dias_sin_stock = np.count_nonzero(self.demanda_insatisfecha)
         
         total_ventas = np.sum(list(self.ventas.values()))
-        total_sin_vender = self.unidades_sin_vender()
+        total_sin_vender = sum(self.demanda_insatisfecha)
                
         data =  {
             "Nivel servicio": nivel_servicio,
-            "Costo pedidos [$]": costo_pedidos,
-            "Costo almacenamiento [$]": costo_almacenamiento,
-            "Costo demanda insatisfecha [$]": costo_demanda_insatisfecha,
-            "Costo total [$]": costo_total,
             "Rotura de stock [%]": rotura_stock,
+
+            "Total pedidos [unidades]": sum(self.cant_ordenada),         
+            "Costo pedidos [$]": costo_pedidos,
+
+            "Costo almacenamiento [$]": costo_almacenamiento,
+            
+            "Cantidad dias sin stock": cant_dias_sin_stock,
             "Cantidad total sin vender [unidades]": total_sin_vender,
             "Pérdida monetaria quiebre stock [$]": total_sin_vender * self.precio_venta,
-            "Cantidad dias sin stock": cant_dias_sin_stock,
+            "Costo demanda insatisfecha [$]": costo_demanda_insatisfecha,
+            
+            "Costo total [$]": costo_total,
+
             "Total ventas [unidades]": total_ventas,
             "Ingresos por ventas [$]": total_ventas*self.precio_venta,
             "Balance": total_ventas*self.precio_venta - costo_total
@@ -265,6 +289,9 @@ class Bodega:
         plt.step(list(range(0, self.dias)), self.inventario, where='post')
         plt.xlabel("Días")
         plt.ylabel("Inventario")
-        titulo = self.politica + " : (" + str(self.rop) + ", " + str(self.max) + ")"
+        if self.politica == "(s,S)":
+            titulo = self.politica + " : (" + str(np.ceil(self.rop)) + ", " + str(self.max) + ")"
+        elif self.politica == "EOQ":
+            titulo = self.politica + "Q_optimo = " + str(self.Q_optimo) + " - rop = " + str(self.rop) 
         plt.title(titulo)
         plt.show()

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import scipy.stats as st
-from openpyxl import load_workbook
+
 
 #from simulacion_diario import Bodega
 from simulacion_semanal import Bodega
@@ -56,50 +56,6 @@ def histogramas_png(valores_politica, replicas):
                 plt.title(f"{df.columns[i]}")
                 fig2.savefig(folder+'/box'+str(valores)+str(df.columns[i])+".png")
         print("\n")
-
-def mostrar_kpi(valores_politica, replicas, resultado):
-    # Se guardan kpi por repetición en excel
-    path = "sample_data.xlsx"
-    writer = pd.ExcelWriter(path, engine = 'openpyxl')
-
-    print(f"\nESTADÍSTICAS KPI")
-    for valores in valores_politica:
-        print(f"\nPOLÍTICA {valores}")
-        politica = resultado[str(valores)]
-        rows = []
-        for j in range(0, replicas):
-            kpi = politica["repeticion"+str(j)]
-            rows.append(list(kpi.values()))
-        df = pd.DataFrame(rows, columns = list(kpi.keys()))
-        df.to_excel(writer, sheet_name='kpi'+str(valores), index=True)
-        
-        # Muestra el promedio de los kpi por política
-        print(df.describe().transpose())
-        print("-"*20)
-        print("\n")
-        
-        writer.save()
-    writer.close()
-
-def mostrar_simulacion(valores_politica, replicas, politica, periodos, demanda):
-    resultado = {}
-    print(f"\nESTADÍSTICAS SIMULACIÓN")
-    for valores in valores_politica:
-        print(f"\nPOLÍTICA {valores}")
-        resultado[str(valores)] = {}
-        for i in range(0, replicas):
-            s = Bodega(valores[0], valores[1], politica, periodos, demanda)
-            s.run()
-
-            # Guarda datos de la ultima simulación
-            #s.guardar_datos(excel, str(valores))
-            resultado[str(valores)]["repeticion"+str(i)] = s.guardar_kpi()
-        #df = pd.read_excel('sample_data.xlsx', str(valores), engine='openpyxl')
-        #print(df.describe().transpose())
-        #print("\n")
-        #print("-"*20)
-        #print("\n")
-    return resultado
 
 def generar_demanda(periodos):
         ''' Genera demanda semanal según distribución '''

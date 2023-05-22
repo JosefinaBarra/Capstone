@@ -4,6 +4,7 @@ import pandas as pd
 
 from simulacion_diario import Bodega
 from funciones import histogramas_png, generar_demanda
+#from abrir_archivo import demanda
 
 
 np.random.seed(0)
@@ -21,14 +22,20 @@ resultado_base = {}
 
 caso_base = True
 no_mostro_grafico_base = True
+
+# Demanda real
+#print(demanda)
+
+# Demanda simulada
 demanda = generar_demanda(periodos)
 
-prom_demanda = np.ceil(np.mean(list(demanda.values())))
+
+prom_demanda = np.mean(list(demanda.values()))
 
 
 valores_politica = []
 for i in range(1, 4):
-    valores_politica.append((prom_demanda/i, (i+1)*prom_demanda))
+    valores_politica.append((np.ceil(prom_demanda/i), np.ceil((i+1)*prom_demanda)))
 
 
 #valores_politica = [
