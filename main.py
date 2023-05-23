@@ -17,7 +17,7 @@ excel = pd.ExcelWriter(
     engine_kwargs={"options": {"strings_to_numbers": True}}
 )
 
-replicas = 100
+replicas = 1000
 periodos = 30
 politica = "(s,S)"
 #politica = "EOQ"   
@@ -94,11 +94,18 @@ df2 = pd.DataFrame(data_excel).transpose()
 df2.columns = nombre_columna
 df2.to_excel(excel, sheet_name='Mean', index=True)
 
-    
-    # Muestra el promedio de los kpi por política
-    #print(df.describe().transpose())
-    #print("-"*20)
-    #print("\n")
+for kpi in range(0, len(nombre_columna)):
+    matriz = []
+    for i in range(51):
+        fila = []
+        for j in range(51):
+            tupla = "("+str(i)+", "+str(j)+")"
+            dato = data_excel[tupla][kpi]
+            fila.append(dato)
+        matriz.append(fila)
+
+    df3 = pd.DataFrame(matriz)
+    df3.to_excel(excel, sheet_name="kpi"+str(kpi), index=True)
     
 excel.close()
 
