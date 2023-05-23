@@ -56,21 +56,10 @@ def guardar_matriz_heatmap_kpi(nombre_columna, rango_s_S, data_excel, excel):
         im = ax.imshow(matriz, cmap='GnBu')
         fig.colorbar(im, ax=ax)
 
-
         # Show all ticks and label them with the respective list entries
         ax.xaxis.tick_top()
         ax.set_xticks(np.arange(0, rango_s_S))
         ax.set_yticks(np.arange(0, rango_s_S))
-
-        # Rotate the tick labels and set their alignment.
-        plt.setp(ax.get_xticklabels(), ha="right",
-                rotation_mode="anchor")
-
-        # Loop over data dimensions and create text annotations.
-        for i in range(rango_s_S):
-            for j in range(rango_s_S):
-                text = ax.text(j, i, np.round(matriz[i][j],3),
-                            ha="center", va="center")
 
         ax.set_title(str(nombre_columna[kpi]))
         fig.tight_layout()
