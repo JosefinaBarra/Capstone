@@ -73,12 +73,11 @@ for valores in valores_politica:
         rows.append(list(kpi.values()))
     
     df = pd.DataFrame(rows, columns = list(kpi.keys()))
-    df.to_excel(excel, sheet_name='kpi'+str(valores), index=True)
+    #df.to_excel(excel, sheet_name='kpi'+str(valores), index=True)
 
     nombre_columna = list(df.columns.values)
     columna = []
     for i in range(0, len(nombre_columna)):
-        
         valores_kpi = df[nombre_columna[i]].describe().loc[['mean']].tolist()
         valores_kpi = map(str,valores_kpi)
         columna.append(str(''.join(valores_kpi)))
