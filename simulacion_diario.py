@@ -73,7 +73,7 @@ class Bodega:
                 return self.max - self.inventario[dia]
             return 0
         elif politica == "EOQ":
-            pedido = np.ceil(self.eoq())
+            pedido = np.ceil(self.Q_optimo)
             return pedido
 
     def eoq(self):
@@ -292,6 +292,6 @@ class Bodega:
         if self.politica == "(s,S)":
             titulo = self.politica + " : (" + str(np.ceil(self.rop)) + ", " + str(self.max) + ")"
         elif self.politica == "EOQ":
-            titulo = self.politica + "Q_optimo = " + str(self.Q_optimo) + " - rop = " + str(self.rop) 
+            titulo = self.politica + "Q_optimo = " + str(np.ceil(self.Q_optimo)) + " - rop = " + str(np.ceil(self.rop))
         plt.title(titulo)
         plt.show()

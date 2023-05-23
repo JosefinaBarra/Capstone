@@ -45,8 +45,8 @@ def histogramas_png(valores_politica, replicas):
                 plt.plot(x, p, 'k', linewidth=2)
                 
                 #print(f"INTERVALOS: [{izq}, {der}]")
-                plt.axvline(izq, color='#395d90')
-                plt.axvline(der, color='#395d90')
+                #plt.axvline(izq, color='#395d90')
+                #plt.axvline(der, color='#395d90')
                 plt.title(f"{df.columns[i]} ~ N({np.round(mu,2)}, {np.round(std,2)})")
                 fig.savefig(folder+'/'+str(valores)+str(df.columns[i])+".png")
 
