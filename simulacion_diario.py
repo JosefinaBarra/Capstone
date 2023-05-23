@@ -12,7 +12,7 @@ def scores(l):
 class Bodega:
     ''' Bodega con leadtime de 7 dias '''
     def __init__(
-        self, s, S, politica, periodos, demanda
+        self, s, S, politica, periodos, demanda, precio_venta, costo_pedido, costo_almacenamiento, costo_demanda_perdida, tiempo_revision, lead_time
     ):
         # Número de dias de simulación
         self.dias = periodos
@@ -20,15 +20,17 @@ class Bodega:
         self.demanda = demanda
 
         # Ingresos por venta
-        self.precio_venta = 6260
+        self.precio_venta = precio_venta
 
         # Costos
-        self.costo_pedido = 4201
-        self.costo_almacenamiento = 12
-        self.costo_demanda_perdida = 6260
+        self.costo_pedido = costo_pedido
+        self.costo_almacenamiento = costo_almacenamiento
+        self.costo_demanda_perdida = costo_demanda_perdida
+
+        self.tiempo_revision = tiempo_revision
 
         # Lead time pedido
-        self.lead_time = 2
+        self.lead_time = lead_time
 
         self.max = S
         
@@ -56,11 +58,6 @@ class Bodega:
     def generar_demanda(self):
         ''' Genera demanda diaria según distribución '''
         for i in range(0, self.dias):
-            #demanda_generada = np.random.normal(144.9151, 55.5326)
-            #demanda_generada = np.random.uniform(61, 1725)
-            #demanda_generada = np.random.uniform(0, 5)
-            #demanda_generada = np.random.gamma(3.002389619, 0.006414003)
-            #demanda_generada = np.random.poisson(0.9)
             demanda_generada = np.random.poisson(3.825)
             self.demanda[i] = demanda_generada
         return self.demanda
@@ -127,10 +124,13 @@ class Bodega:
                 
                 # EVALÚO POLÍTICA PARA HACER UN PEDIDO
                 if not encamino:
-                    self.cant_ordenada[i] = self.pedido_semana(i, self.politica)
-                    if self.cant_ordenada[i] > 0:
-                        encamino = True
-                #print(f"\nPEDIDO REALIZADO DIA {i}: {self.cant_ordenada[i]}\nEn camino {encamino}\n")
+                    # Si toca hacer revisión (tiempo=1 -> continua; tiempo!=1 -> periodica)
+                    if self.tiempo_revision != 0 and i % self.tiempo_revision == 0: 
+                        #print(f"HOY TOCA REVISIÓN DE INVENTARIO - DIA {i}")
+                        self.cant_ordenada[i] = self.pedido_semana(i, self.politica)
+                        if self.cant_ordenada[i] > 0:
+                            encamino = True
+                            #print(f"\nPEDIDO REALIZADO DIA {i}: {self.cant_ordenada[i]}\nEn camino {encamino}\n")
             
             elif self.politica == "EOQ":
                 if i >= self.lead_time and self.cant_ordenada[i-self.lead_time] != 0:

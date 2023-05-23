@@ -31,24 +31,10 @@ no_mostro_grafico_base = True
 # Demanda real
 #print(demanda)
 
-valores_politica = [(row, col) for row in range(51) for col in range(51)]
+valores_politica = [(s, S) for s in range(51) for S in range(51) if s<=S]
 
 # Demanda simulada
 demanda = generar_demanda(periodos)
-
-
-prom_demanda = np.mean(list(demanda.values()))
-
-
-
-#valores_politica = [
-#    (prom_demanda,5000), (prom_demanda/2,5000), (prom_demanda/3,5000),
-#    (prom_demanda,4000), (prom_demanda/2,4000), (prom_demanda/3,4000),
-#    (prom_demanda,3000), (prom_demanda/2,3000), (prom_demanda/3,3000),
-#    (prom_demanda,2000), (prom_demanda/2,2000), (prom_demanda/3,2000),
-#    (prom_demanda,1000), (prom_demanda/2,1000), (prom_demanda/3,1000)
-#]
-
 
 print(f"\nESTADÍSTICAS SIMULACIÓN")
 for valores in valores_politica:
@@ -56,7 +42,19 @@ for valores in valores_politica:
     resultado[str(valores)] = {}
     #print(f"\nPOLÍTICA {valores}")
     for i in range(0, replicas):
-        s = Bodega(valores[0], valores[1], politica, periodos, demanda)
+        s = Bodega(
+            s=valores[0],
+            S=valores[1],
+            politica=politica,
+            periodos=periodos,
+            demanda=demanda,
+            precio_venta=6260,
+            costo_pedido=4201,
+            costo_almacenamiento=12,
+            costo_demanda_perdida=6260,
+            tiempo_revision=1, # Tieme que ser >= 1
+            lead_time=7
+        )
         s.run()
         
         if muestra_grafico:
@@ -67,7 +65,6 @@ for valores in valores_politica:
 
 # Se guardan kpi por repetición en excel
 data_excel = {}
-print(f"\nESTADÍSTICAS KPI")
 for valores in valores_politica:
     #print(f"\nPOLÍTICA {valores}")
     resultado_kpi = resultado[str(valores)]
@@ -99,13 +96,16 @@ for kpi in range(0, len(nombre_columna)):
     for i in range(51):
         fila = []
         for j in range(51):
-            tupla = "("+str(i)+", "+str(j)+")"
-            dato = data_excel[tupla][kpi]
-            fila.append(dato)
+            if i <= j:
+                tupla = "("+str(i)+", "+str(j)+")"
+                dato = data_excel[tupla][kpi]
+                fila.append(dato)
+            else:
+                fila.append(0)
         matriz.append(fila)
 
     df3 = pd.DataFrame(matriz)
-    df3.to_excel(excel, sheet_name="kpi"+str(kpi), index=True)
+    df3.to_excel(excel, sheet_name="Mean-kpi"+str(kpi), index=True)
     
 excel.close()
 
