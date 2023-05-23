@@ -11,7 +11,11 @@ from funciones import histogramas_png, generar_demanda
 np.random.seed(0)
 pd.set_option('display.float_format', lambda x: '%.3f' % x)
 
-excel = pd.ExcelWriter('sample_data.xlsx')
+excel = pd.ExcelWriter(
+    'sample_data.xlsx',
+    engine="xlsxwriter", 
+    engine_kwargs={"options": {"strings_to_numbers": True}}
+)
 
 replicas = 100
 periodos = 30
@@ -96,7 +100,6 @@ df2.to_excel(excel, sheet_name='Mean', index=True)
     #print("-"*20)
     #print("\n")
     
-excel.save()
 excel.close()
 
 # Guardo histogramas de kpi en carpetas
