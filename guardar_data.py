@@ -80,25 +80,46 @@ def guardar_matriz_heatmap_kpi(nombre_columna, rango_s_S, data_excel, excel):
 
     return valores_matriz
 
-def guardar_3d(valores_matriz, rango_s_S, excel):
-    actual_path = os.getcwd()
-    x = np.linspace(0, rango_s_S, 10)
-    y = x
-    X, Y = np.meshgrid(x,y)
+# https://gist.github.com/CMCDragonkai/dd420c0800cba33142505eff5a7d2589
+def surface_plot(matrix, **kwargs):
+    # acquire the cartesian coordinate matrices from the matrix
+    # x is rows, y is cols
+    (y, x) = np.meshgrid(np.arange(matrix.shape[1]), np.arange(matrix.shape[0]))
 
+    fig = plt.figure()
+    ax = fig.axes(projection='3d')
+
+    surf = ax.plot_surface(x, y, matrix, **kwargs)
+    return (fig, ax, surf)
+
+
+def guardar_3d(valores_matriz):
     i = 0
-    for Z in valores_matriz:
+    mycmap = plt.get_cmap('gist_earth')
+
+    for matriz_kpi in valores_matriz:
+        array_matriz = np.array(matriz_kpi)
+
+        (y, x) = np.meshgrid(np.arange(array_matriz.shape[1]), np.arange(array_matriz.shape[0]))
+
         fig = plt.figure()
-        ax = plt.axes(projection="3d")
-        ax.plot_surface(X,Y,Z, cmap="plasma", linewidth=0, antialiased=False, alpha=0.5)
+        ax = plt.axes(projection='3d')
+        surf = ax.plot_surface(x,y,array_matriz,cmap=mycmap)
+
         ax.set_xlabel('x')
         ax.set_ylabel('y')
         ax.set_zlabel('z')
-        ax.view_init(30,30)
-        
+
+        ax.set_title('i')
+
+        fig.colorbar(surf, ax=ax, shrink=0.5, aspect=5)
+
+
+        actual_path = os.getcwd()
         folder = 'graficos'
+        
         dir = os.path.join(actual_path, folder)
         if not os.path.exists(dir):
             os.makedirs(dir)
-        plt.savefig(folder+'/3D_kpi'+str(i)+".png")
-        i+=1
+        fig.savefig(folder+'/3d_kpi'+str(i)+".png")
+        i += 1
