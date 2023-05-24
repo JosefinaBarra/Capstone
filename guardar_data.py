@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 
 def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
@@ -61,8 +62,8 @@ def guardar_matriz_heatmap_kpi(nombre_columna, rango_s_S, data_excel, excel):
 
         # Show all ticks and label them with the respective list entries
         ax.xaxis.tick_top()
-        ax.set_xticks(np.arange(0, rango_s_S))
-        ax.set_yticks(np.arange(0, rango_s_S))
+        ax.set_xticks(np.arange(0, rango_s_S, 10))
+        ax.set_yticks(np.arange(0, rango_s_S, 10))
 
         ax.set_title(str(nombre_columna[kpi]))
         fig.tight_layout()
