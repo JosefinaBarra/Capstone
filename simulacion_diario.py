@@ -1,7 +1,6 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
+import matplotlib.pyplot as plt
 import itertools as it, collections as _col
 
 # [1] Función de: https://stackoverflow.com/questions/57809568/counting-sequential-occurrences-in-a-list-and
@@ -254,7 +253,7 @@ class Bodega:
         total_sin_vender = sum(self.demanda_insatisfecha)
                
         data =  {
-            "Nivel servicio": nivel_servicio,
+            "Nivel servicio [%]": nivel_servicio*100,
             "Rotura de stock [%]": rotura_stock,
 
             "Total pedidos [unidades]": sum(self.cant_ordenada),         
@@ -262,7 +261,7 @@ class Bodega:
 
             "Costo almacenamiento [$]": costo_almacenamiento,
             
-            "Cantidad dias sin stock": cant_dias_sin_stock,
+            "Cantidad dias sin stock [dias]": cant_dias_sin_stock,
             "Cantidad total sin vender [unidades]": total_sin_vender,
             "Costo demanda insatisfecha [$]": costo_demanda_insatisfecha,
             
@@ -270,7 +269,7 @@ class Bodega:
 
             "Total ventas [unidades]": total_ventas,
             "Ingresos por ventas [$]": total_ventas*self.precio_venta,
-            "Balance": total_ventas*self.precio_venta - costo_pedidos - costo_almacenamiento
+            "Balance [$]": total_ventas*self.precio_venta - costo_pedidos - costo_almacenamiento
         }
 
         # Dias seguidas sin stock

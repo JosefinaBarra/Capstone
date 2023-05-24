@@ -1,8 +1,8 @@
 import os
 import pandas as pd
 import numpy as np
-import matplotlib
 import matplotlib.pyplot as plt
+
 
 def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
     data_excel = {}
@@ -67,10 +67,9 @@ def guardar_matriz_heatmap_kpi(nombre_columna, rango_s_S, data_excel, excel):
 
         ax.set_title(str(nombre_columna[kpi]))
         fig.tight_layout()
-        
+
         folder = 'graficos'
         dir = os.path.join(actual_path, folder)
         if not os.path.exists(dir):
             os.makedirs(dir)
         fig.savefig(folder+'/kpi'+str(kpi)+".png")
-    
