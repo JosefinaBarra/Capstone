@@ -82,7 +82,7 @@ nombre_columna, data_excel = guardar_pares_kpi(valores_politica, resultado, repl
 
 # Se genera matriz por cada kpi en nueva hoja
 valores_matriz = guardar_matriz_heatmap_kpi(nombre_columna, rango_s_S, data_excel, excel)
-guardar_3d(valores_matriz)
+guardar_3d(valores_matriz, nombre_columna)
     
 excel.close()
 

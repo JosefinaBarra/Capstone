@@ -93,27 +93,24 @@ def surface_plot(matrix, **kwargs):
     return (fig, ax, surf)
 
 
-def guardar_3d(valores_matriz):
+def guardar_3d(valores_matriz, nombre_columna):
     i = 0
     mycmap = plt.get_cmap('gist_earth')
 
     for matriz_kpi in valores_matriz:
-        array_matriz = np.array(matriz_kpi)
+        z = np.array(matriz_kpi)
 
-        (y, x) = np.meshgrid(np.arange(array_matriz.shape[1]), np.arange(array_matriz.shape[0]))
+        (y, x) = np.meshgrid(np.arange(z.shape[1]), np.arange(z.shape[0]))
 
         fig = plt.figure()
         ax = plt.axes(projection='3d')
-        surf = ax.plot_surface(x,y,array_matriz,cmap=mycmap)
+        ax.scatter(x,y,z, c = 'r', s = 50)
 
         ax.set_xlabel('x')
         ax.set_ylabel('y')
         ax.set_zlabel('z')
 
-        ax.set_title('i')
-
-        fig.colorbar(surf, ax=ax, shrink=0.5, aspect=5)
-
+        ax.set_title(nombre_columna[i])
 
         actual_path = os.getcwd()
         folder = 'graficos'
@@ -121,5 +118,5 @@ def guardar_3d(valores_matriz):
         dir = os.path.join(actual_path, folder)
         if not os.path.exists(dir):
             os.makedirs(dir)
-        fig.savefig(folder+'/3d_kpi'+str(i)+".png")
+        fig.savefig(folder+'/3d_kpi_'+nombre_columna[i]+".png")
         i += 1
