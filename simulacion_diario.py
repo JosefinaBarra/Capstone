@@ -252,12 +252,10 @@ class Bodega:
         
         total_ventas = np.sum(list(self.ventas.values()))
         total_sin_vender = sum(self.demanda_insatisfecha)
-        inventario_inicial = self.inventario[0]*self.costo_pedido
-        inventario_final = self.inventario[-1]*self.costo_pedido
                
         data =  {
             "Nivel servicio [%]": np.round(nivel_servicio*100,3),
-            "Rotación inventario": (sum(list(self.ventas.values()))*self.costo_pedido)/((inventario_inicial+inventario_final)/2),
+            "Rotación inventario": (sum(list(self.ventas.values()))*self.costo_pedido)/(np.mean(self.inventario)),
             "Rotura de stock [%]": np.round(rotura_stock,3),
 
             "Total pedidos [unidades]": sum(self.cant_ordenada), 
