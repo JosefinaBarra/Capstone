@@ -271,7 +271,7 @@ class Bodega:
 
             "Total ventas [unidades]": total_ventas,
             "Ingresos por ventas [$]": total_ventas*self.precio_venta,
-            "Balance": total_ventas*self.precio_venta - costo_total
+            "Balance": total_ventas*self.precio_venta - costo_pedidos - costo_almacenamiento
         }
 
         # Dias seguidas sin stock
