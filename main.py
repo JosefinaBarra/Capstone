@@ -31,20 +31,21 @@ rango_s_S = 51
 
 # SE OBTIENEN PARÁMETROS DEL CASO BASE USANDO DEMANDA HISTÓRICA
 # Demanda real
-for i in range(0, replicas):
-    s = Bodega(
-            s=np.ceil(np.mean(list(demanda_real.values()))/2),
-            S=np.ceil(np.mean(list(demanda_real.values()))*2),
-            politica=politica,
-            periodos=periodos,
-            precio_venta=6260,
-            costo_pedido=4201,
-            costo_almacenamiento=12,
-            costo_demanda_perdida=1200,
-            tiempo_revision=1, # Tiene que ser >= 1
-            lead_time=7
-        )
-    s.run()
+s = Bodega(
+        s=np.ceil(np.mean(list(demanda_real.values()))/2),
+        S=np.ceil(np.mean(list(demanda_real.values()))*2),  
+        politica=politica,
+        periodos=periodos,
+        precio_venta=6260,
+        costo_pedido=4201,
+        costo_almacenamiento=12,
+        costo_demanda_perdida=1200,
+        tiempo_revision=1, # Tiene que ser >= 1
+        lead_time=7
+    )
+s.run()
+s.grafico()
+print(s.guardar_kpi())
 
 # BUSCAMOS ÓPTIMO PARA PARÁMETROS
 valores_politica = [(s, S) for s in range(rango_s_S) for S in range(rango_s_S) if s<=S]

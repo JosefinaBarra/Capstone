@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -253,23 +254,23 @@ class Bodega:
         total_sin_vender = sum(self.demanda_insatisfecha)
                
         data =  {
-            "Nivel servicio [%]": nivel_servicio*100,
-            "Rotura de stock [%]": rotura_stock,
+            "Nivel servicio [%]": np.round(nivel_servicio*100,3),
+            "Rotura de stock [%]": np.round(rotura_stock,3),
 
-            "Total pedidos [unidades]": sum(self.cant_ordenada),         
-            "Costo pedidos [$]": costo_pedidos,
+            "Total pedidos [unidades]": sum(self.cant_ordenada), 
+            "Costo pedidos [$]": np.round(costo_pedidos,3),
 
-            "Costo almacenamiento [$]": costo_almacenamiento,
+            "Costo almacenamiento [$]": np.round(costo_almacenamiento,3),
             
             "Cantidad dias sin stock [dias]": cant_dias_sin_stock,
             "Cantidad total sin vender [unidades]": total_sin_vender,
-            "Costo demanda insatisfecha [$]": costo_demanda_insatisfecha,
+            "Costo demanda insatisfecha [$]": np.round(costo_demanda_insatisfecha,3),
             
-            "Costo total [$]": costo_total,
+            "Costo total [$]": np.round(costo_total,3),
 
             "Total ventas [unidades]": total_ventas,
-            "Ingresos por ventas [$]": total_ventas*self.precio_venta,
-            "Balance [$]": total_ventas*self.precio_venta - costo_pedidos - costo_almacenamiento
+            "Ingresos por ventas [$]": np.round(total_ventas*self.precio_venta,3),
+            "Balance [$]": np.round(total_ventas*self.precio_venta - costo_pedidos - costo_almacenamiento,3)
         }
 
         # Dias seguidas sin stock
@@ -281,7 +282,9 @@ class Bodega:
     
     def grafico(self):
         ''' Crea gráfico dias vs nivel de inventario '''
-        plt.figure()
+        actual_path = os.getcwd()
+
+        fig, ax = plt.subplots()
         plt.step(list(range(0, self.dias)), self.inventario, where='post')
         plt.xlabel("Días")
         plt.ylabel("Inventario")
@@ -290,4 +293,8 @@ class Bodega:
         elif self.politica == "EOQ":
             titulo = self.politica + "Q_optimo = " + str(np.ceil(self.Q_optimo)) + " - rop = " + str(np.ceil(self.rop))
         plt.title(titulo)
-        plt.show()
+        folder = 'graficos'
+        dir = os.path.join(actual_path, folder)
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        fig.savefig(folder+"/caso_base.png")
