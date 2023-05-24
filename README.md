@@ -21,7 +21,7 @@ El inicio de la simulación comienza al implementar la función `run()` del obje
 
 Luego de la simulación se guardan los resultados en un diccionario de la forma: 
 
-$$ \displaylines{\left\lbrace \\\ \hspace{3mm} '\left\(s,S\right\)' :\left\lbrace  \\\ \hspace{6mm} 'repeticion_i' :\left\lbrace KPI_0: x_0 , … , KPI_N: x_N\right\rbrace  \\\ \hspace{4mm}\right\rbrace  \\\ \right\rbrace } $$
+$$ \displaylines{\left\lbrace \\\ \hspace{3mm} '\left\(s,S\right\)' :\left\lbrace  \\\ \hspace{6mm} 'repeticion \hspace{1pt} i' :\left\lbrace KPI_0: x_0 , … , KPI_N: x_N\right\rbrace  \\\ \hspace{4mm}\right\rbrace  \\\ \right\rbrace } $$
 
 Por lo que para cada par $(s,S)$ se almacenan los $KPI$ obtenidos en cada repetición. Con este resultado se usa la función `guardar_pares_kpi()` en el archivo `guardar_data.py` para guardar en el archivo Excel `sample_data.xlsx`, definiendo las filas como los pares de parámetros y las columnas los valores de la media de los $KPI$.  
 
