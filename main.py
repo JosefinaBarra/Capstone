@@ -16,8 +16,8 @@ excel = pd.ExcelWriter(
     engine_kwargs={"options": {"strings_to_numbers": True}}
 )
 
-replicas = 2
-periodos = 3
+replicas = 1000
+periodos = 30
 politica = "(s,S)"
 #politica = "EOQ"   
 
@@ -27,7 +27,7 @@ resultado_base = {}
 caso_base = True
 no_mostro_grafico_base = True
 
-rango_s_S = 2
+rango_s_S = 51
 
 # SE OBTIENEN PARÁMETROS DEL CASO BASE USANDO DEMANDA HISTÓRICA
 # Demanda real
