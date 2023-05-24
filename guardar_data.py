@@ -53,7 +53,7 @@ def guardar_matriz_heatmap_kpi(nombre_columna, rango_s_S, data_excel, excel):
         df3.to_excel(excel, sheet_name="Mean-kpi"+str(kpi), index=True)
 
         fig, ax = plt.subplots()
-        im = ax.imshow(matriz, cmap='GnBu')
+        im = ax.imshow(matriz, cmap='GnBu', aspect='auto')
         fig.colorbar(im, ax=ax)
 
         # Show all ticks and label them with the respective list entries
