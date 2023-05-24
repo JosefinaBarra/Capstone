@@ -75,7 +75,6 @@ class Bodega:
 
     def eoq(self):
         demanda_total = np.sum(list(self.demanda.values()))
-        costo_almacenamiento_total = self.costo_almacenamiento * self.dias
         self.Q_optimo = np.sqrt((2*demanda_total*self.costo_pedido)/(self.costo_almacenamiento*self.dias))
         #print(f"(2 * {demanda_total} * {self.costo_pedido}) / ({self.costo_almacenamiento} * {self.dias}")
         #print(f"EOQ = {self.Q_optimo}\n")
@@ -171,7 +170,7 @@ class Bodega:
                 #print(f'Debería quedan en Inventario = {self.inventario[i] - self.ventas[i]}\n')
 
             # Guardo productos que se mantuvieron en bodega durante el día i
-            self.almacenamiento[i] = (self.inventario[i] - self.ventas[i])
+            self.almacenamiento[i] = (self.inventario[i] - self.ventas[i])*self.costo_almacenamiento
         
         self.periodos_sin_stock()
             
@@ -210,8 +209,7 @@ class Bodega:
         total_pedidos = sum(self.cant_ordenada)
         costo_pedidos = total_pedidos * self.costo_pedido
 
-        total_almacenamiento = sum(self.almacenamiento)
-        costo_almacenamiento = total_almacenamiento * self.costo_almacenamiento
+        costo_almacenamiento = sum(self.almacenamiento)
 
         total_demanda_perdida = sum(self.demanda_insatisfecha)
         costo_demanda_insatisfecha = total_demanda_perdida * self.precio_venta

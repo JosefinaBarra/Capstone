@@ -18,8 +18,8 @@ excel = pd.ExcelWriter(
     engine_kwargs={"options": {"strings_to_numbers": True}}
 )
 
-replicas = 1000
-periodos = 30
+replicas = 5
+periodos = 10
 politica = "(s,S)"
 #politica = "EOQ"   
 
@@ -29,7 +29,7 @@ resultado_base = {}
 caso_base = True
 no_mostro_grafico_base = True
 
-rango_s_S = 51
+rango_s_S = 6
 
 # Demanda real
 #print(demanda)
@@ -54,7 +54,7 @@ for valores in valores_politica:
             precio_venta=6260,
             costo_pedido=4201,
             costo_almacenamiento=12,
-            costo_demanda_perdida=6260,
+            costo_demanda_perdida=1200,
             tiempo_revision=1, # Tieme que ser >= 1
             lead_time=7
         )
