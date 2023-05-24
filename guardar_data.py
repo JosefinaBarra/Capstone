@@ -104,7 +104,7 @@ def guardar_3d(valores_matriz, nombre_columna):
 
         fig = plt.figure()
         ax = plt.axes(projection='3d')
-        ax.scatter(x,y,z, c = 'r', s = 50)
+        ax.scatter(x,y,z, s = 5)
 
         ax.set_xlabel('x')
         ax.set_ylabel('y')
@@ -118,5 +118,5 @@ def guardar_3d(valores_matriz, nombre_columna):
         dir = os.path.join(actual_path, folder)
         if not os.path.exists(dir):
             os.makedirs(dir)
-        fig.savefig(folder+'/3d_kpi_'+nombre_columna[i]+".png")
+        fig.savefig(folder+'/3d_kpi_'+str(i)+".png")
         i += 1
