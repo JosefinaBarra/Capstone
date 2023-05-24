@@ -18,8 +18,8 @@ excel = pd.ExcelWriter(
     engine_kwargs={"options": {"strings_to_numbers": True}}
 )
 
-replicas = 5
-periodos = 10
+replicas = 1000
+periodos = 30
 politica = "(s,S)"
 #politica = "EOQ"   
 
@@ -29,7 +29,7 @@ resultado_base = {}
 caso_base = True
 no_mostro_grafico_base = True
 
-rango_s_S = 6
+rango_s_S = 51
 
 # Demanda real
 #print(demanda)
