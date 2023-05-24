@@ -1,11 +1,9 @@
 
 import numpy as np
 import pandas as pd
-import csv
 
 from simulacion_diario import Bodega
-from funciones import histogramas_png, generar_demanda
-#from abrir_archivo import demanda
+from abrir_archivo import demanda_real
 from guardar_data import guardar_pares_kpi, guardar_matriz_heatmap_kpi
 
 
@@ -18,8 +16,8 @@ excel = pd.ExcelWriter(
     engine_kwargs={"options": {"strings_to_numbers": True}}
 )
 
-replicas = 1000
-periodos = 30
+replicas = 2
+periodos = 3
 politica = "(s,S)"
 #politica = "EOQ"   
 
@@ -29,15 +27,27 @@ resultado_base = {}
 caso_base = True
 no_mostro_grafico_base = True
 
-rango_s_S = 51
+rango_s_S = 2
 
+# SE OBTIENEN PARÁMETROS DEL CASO BASE USANDO DEMANDA HISTÓRICA
 # Demanda real
-#print(demanda)
+for i in range(0, replicas):
+    s = Bodega(
+            s=np.ceil(np.mean(list(demanda_real.values()))/2),
+            S=np.ceil(np.mean(list(demanda_real.values()))*2),
+            politica=politica,
+            periodos=periodos,
+            precio_venta=6260,
+            costo_pedido=4201,
+            costo_almacenamiento=12,
+            costo_demanda_perdida=1200,
+            tiempo_revision=1, # Tiene que ser >= 1
+            lead_time=7
+        )
+    s.run()
 
+# BUSCAMOS ÓPTIMO PARA PARÁMETROS
 valores_politica = [(s, S) for s in range(rango_s_S) for S in range(rango_s_S) if s<=S]
-
-# Demanda simulada
-demanda = generar_demanda(periodos)
 
 print(f"\nESTADÍSTICAS SIMULACIÓN")
 for valores in valores_politica:
@@ -50,7 +60,6 @@ for valores in valores_politica:
             S=valores[1],
             politica=politica,
             periodos=periodos,
-            demanda=demanda,
             precio_venta=6260,
             costo_pedido=4201,
             costo_almacenamiento=12,

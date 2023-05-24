@@ -11,12 +11,12 @@ def scores(l):
 class Bodega:
     ''' Bodega con leadtime de 7 dias '''
     def __init__(
-        self, s, S, politica, periodos, demanda, precio_venta, costo_pedido, costo_almacenamiento, costo_demanda_perdida, tiempo_revision, lead_time
+        self, s, S, politica, periodos, precio_venta, costo_pedido, costo_almacenamiento, costo_demanda_perdida, tiempo_revision, lead_time
     ):
         # Número de dias de simulación
         self.dias = periodos
         self.politica = politica
-        self.demanda = demanda
+        self.demanda = {}
 
         # Ingresos por venta
         self.precio_venta = precio_venta
