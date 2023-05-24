@@ -264,7 +264,6 @@ class Bodega:
             
             "Cantidad dias sin stock": cant_dias_sin_stock,
             "Cantidad total sin vender [unidades]": total_sin_vender,
-            "Pérdida monetaria quiebre stock [$]": total_sin_vender * self.precio_venta,
             "Costo demanda insatisfecha [$]": costo_demanda_insatisfecha,
             
             "Costo total [$]": costo_total,
