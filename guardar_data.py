@@ -54,6 +54,9 @@ def guardar_matriz_heatmap_kpi(nombre_columna, rango_s_S, data_excel, excel):
 
         fig, ax = plt.subplots()
         im = ax.imshow(matriz, cmap='GnBu', aspect='auto')
+        ax.set_aspect('auto')
+        ax.axis('scaled')
+
         fig.colorbar(im, ax=ax)
 
         # Show all ticks and label them with the respective list entries
