@@ -106,8 +106,8 @@ def guardar_3d(valores_matriz, nombre_columna):
         ax = plt.axes(projection='3d')
         ax.scatter(x,y,z, s = 5)
 
-        ax.set_xlabel('x')
-        ax.set_ylabel('y')
+        ax.set_xlabel('s')
+        ax.set_ylabel('S')
         ax.set_zlabel('z')
 
         ax.set_title(nombre_columna[i])
