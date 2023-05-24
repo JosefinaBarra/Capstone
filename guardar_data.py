@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits import mplot3d
 
 
 def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
@@ -36,6 +37,7 @@ def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
 
 def guardar_matriz_heatmap_kpi(nombre_columna, rango_s_S, data_excel, excel):
     actual_path = os.getcwd()
+    valores_matriz = []
     for kpi in range(0, len(nombre_columna)):
         matriz = []
         for i in range(rango_s_S):
@@ -49,7 +51,7 @@ def guardar_matriz_heatmap_kpi(nombre_columna, rango_s_S, data_excel, excel):
                     fila.append('0')
                 fila_int = [float(x) for x in fila]
             matriz.append(fila_int)
-
+        
         df3 = pd.DataFrame(matriz)
         df3.to_excel(excel, sheet_name="Mean-kpi"+str(kpi), index=True)
 
@@ -73,3 +75,30 @@ def guardar_matriz_heatmap_kpi(nombre_columna, rango_s_S, data_excel, excel):
         if not os.path.exists(dir):
             os.makedirs(dir)
         fig.savefig(folder+'/kpi'+str(kpi)+".png")
+
+        valores_matriz.append(matriz)
+
+    return valores_matriz
+
+def guardar_3d(valores_matriz, rango_s_S, excel):
+    actual_path = os.getcwd()
+    x = np.linspace(0, rango_s_S, 10)
+    y = x
+    X, Y = np.meshgrid(x,y)
+
+    i = 0
+    for Z in valores_matriz:
+        fig = plt.figure()
+        ax = plt.axes(projection="3d")
+        ax.plot_surface(X,Y,Z, cmap="plasma", linewidth=0, antialiased=False, alpha=0.5)
+        ax.set_xlabel('x')
+        ax.set_ylabel('y')
+        ax.set_zlabel('z')
+        ax.view_init(30,30)
+        
+        folder = 'graficos'
+        dir = os.path.join(actual_path, folder)
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        plt.savefig(folder+'/3D_kpi'+str(i)+".png")
+        i+=1
