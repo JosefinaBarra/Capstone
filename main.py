@@ -47,7 +47,6 @@ s = Bodega(
     )
 s.run()
 s.grafico()
-print("A")
 print(s.guardar_kpi())
 
 # BUSCAMOS ÓPTIMO PARA PARÁMETROS

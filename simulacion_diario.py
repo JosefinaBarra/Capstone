@@ -4,6 +4,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import itertools as it, collections as _col
 
+np.random.seed(0)
+
 # [1] Función de: https://stackoverflow.com/questions/57809568/counting-sequential-occurrences-in-a-list-and
 def scores(l):
   return _col.Counter([len(list(b)) for a, b in it.groupby(l, key=lambda x:x != 0) if a])

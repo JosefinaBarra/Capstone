@@ -7,6 +7,8 @@ from mpl_toolkits import mplot3d
 
 def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
     data_excel = {}
+    data_excel_min = {}
+    data_excel_max = {}
     for valores in valores_politica:
         #print(f"\nPOLÍTICA {valores}")
         resultado_kpi = resultado[str(valores)]
@@ -19,12 +21,26 @@ def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
         #df.to_excel(excel, sheet_name='kpi'+str(valores), index=True)
 
         nombre_columna = list(df.columns.values)
-        columna = []
+        columna_mean = []
+        columna_min = []
+        columna_max = []
+
         for i in range(0, len(nombre_columna)):
-            valores_kpi = df[nombre_columna[i]].describe().loc[['mean']].tolist()
-            valores_kpi = map(str,valores_kpi)
-            columna.append(str(''.join(valores_kpi)))
-            data_excel[str(valores)] = columna
+            valores_kpi_mean = df[nombre_columna[i]].describe().loc[['mean']].tolist()
+            valores_kpi_min = df[nombre_columna[i]].describe().loc[['min']].tolist()
+            valores_kpi_max = df[nombre_columna[i]].describe().loc[['max']].tolist()
+
+            valores_kpi_mean = map(str,valores_kpi_mean)
+            valores_kpi_min = map(str,valores_kpi_min)
+            valores_kpi_max = map(str,valores_kpi_max)
+
+            columna_mean.append(str(''.join(valores_kpi_mean)))
+            columna_min.append(str(''.join(valores_kpi_min)))
+            columna_max.append(str(''.join(valores_kpi_max)))
+
+            data_excel[str(valores)] = columna_mean
+            data_excel_min[str(valores)] = columna_min
+            data_excel_max[str(valores)] = columna_max
 
         #df.describe().loc[['mean','min','max']].to_excel(excel, sheet_name='kpi'+str(valores), index=True)
 
@@ -32,6 +48,14 @@ def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
     df2 = pd.DataFrame(data_excel).transpose()
     df2.columns = nombre_columna
     df2.to_excel(excel, sheet_name='Mean', index=True)
+
+    df2 = pd.DataFrame(data_excel_min).transpose()
+    df2.columns = nombre_columna
+    df2.to_excel(excel, sheet_name='Min', index=True)
+
+    df2 = pd.DataFrame(data_excel_max).transpose()
+    df2.columns = nombre_columna
+    df2.to_excel(excel, sheet_name='Max', index=True)
 
     return nombre_columna, data_excel
 
