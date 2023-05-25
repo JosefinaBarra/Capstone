@@ -36,15 +36,18 @@ s = Bodega(
         S=np.ceil(np.mean(list(demanda_real.values()))*2),  
         politica=politica,
         periodos=periodos,
+        demanda=demanda_real,
         precio_venta=6260,
         costo_pedido=4201,
         costo_almacenamiento=12,
         costo_demanda_perdida=1200,
         tiempo_revision=1, # Tiene que ser >= 1
-        lead_time=7
+        lead_time=7,
+        caso_base=True
     )
 s.run()
 s.grafico()
+print("A")
 print(s.guardar_kpi())
 
 # BUSCAMOS ÓPTIMO PARA PARÁMETROS
@@ -61,12 +64,14 @@ for valores in valores_politica:
             S=valores[1],
             politica=politica,
             periodos=periodos,
+            demanda=None,
             precio_venta=6260,
             costo_pedido=4201,
             costo_almacenamiento=12,
             costo_demanda_perdida=1200,
             tiempo_revision=1, # Tieme que ser >= 1
-            lead_time=7
+            lead_time=7,
+            caso_base=False
         )
         s.run()
         

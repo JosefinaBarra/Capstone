@@ -67,6 +67,9 @@ def guardar_matriz_heatmap_kpi(nombre_columna, rango_s_S, data_excel, excel):
         ax.set_xticks(np.arange(0, rango_s_S, 10))
         ax.set_yticks(np.arange(0, rango_s_S, 10))
 
+        ax.set_xlabel("S")
+        ax.set_ylabel("s")
+
         ax.set_title(str(nombre_columna[kpi]))
         fig.tight_layout()
 

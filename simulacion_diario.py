@@ -12,12 +12,16 @@ def scores(l):
 class Bodega:
     ''' Bodega con leadtime de 7 dias '''
     def __init__(
-        self, s, S, politica, periodos, precio_venta, costo_pedido, costo_almacenamiento, costo_demanda_perdida, tiempo_revision, lead_time
+        self, s, S, politica, periodos, demanda, precio_venta, costo_pedido, costo_almacenamiento, costo_demanda_perdida, tiempo_revision, lead_time, caso_base
     ):
         # Número de dias de simulación
         self.dias = periodos
         self.politica = politica
-        self.demanda = {}
+        self.caso_base = caso_base
+        if self.caso_base:
+            self.demanda = demanda
+        else:
+            self.demanda = {}
 
         # Ingresos por venta
         self.precio_venta = precio_venta
@@ -98,8 +102,9 @@ class Bodega:
 
     def run(self):
         ''' Corre simulación de bodega por dia'''
-        self.demanda = self.generar_demanda()
-        self.inventario[0] = 0
+        if not self.caso_base:
+            self.demanda = self.generar_demanda()
+        self.inventario[0] = self.max
         encamino = False
         #print(f'En camino? {encamino} ')
 
@@ -116,7 +121,7 @@ class Bodega:
                     encamino = False
                     #print(f'Recibo pedido del día {i-self.lead_time} por :{self.cant_ordenada[i-self.lead_time]}')
                     #print(f'Inventario actualizado = {self.inventario[i]}\nEn camino? {encamino}\n')
-                elif i > 1:
+                elif i > 0:
                     self.inventario[i] = self.inventario[i-1] - self.ventas[i-1]
                     #print("No hay pedidos por recibir")
                     #print(f'Inventario actualizado = {self.inventario[i]}\nEn camino? {encamino}\n')
@@ -160,7 +165,7 @@ class Bodega:
                 #print(f'Debería quedar en Inventario = {self.inventario[i] - self.ventas[i]}\n')
 
             # Vendo todo el inventario
-            else:
+            elif demanda > self.inventario[i]:
                 if self.inventario[i] > 0:
                     self.ventas[i] = self.inventario[i]
                 else:
@@ -253,11 +258,10 @@ class Bodega:
         total_ventas = np.sum(list(self.ventas.values()))
         total_sin_vender = sum(self.demanda_insatisfecha)
 
-        inventario_promedio = np.mean(self.inventario)
+        inventario_promedio = np.mean(self.inventario)*self.precio_venta
                
         data =  {
             "Nivel servicio [%]": np.round(nivel_servicio*100,3),
-            "Rotación inventario": (sum(list(self.ventas.values()))*self.costo_pedido)/inventario_promedio,
             "Rotura de stock [%]": np.round(rotura_stock,3),
 
             "Total pedidos [unidades]": sum(self.cant_ordenada), 
