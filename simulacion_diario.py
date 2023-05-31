@@ -14,12 +14,16 @@ def scores(l):
 class Bodega:
     ''' Bodega con leadtime de 7 dias '''
     def __init__(
-        self, s, S, politica, periodos, demanda, precio_venta, costo_pedido, costo_almacenamiento, costo_demanda_perdida, tiempo_revision, lead_time, caso_base
+        self, s, S, politica, periodos, demanda, precio_venta,
+        costo_pedido, costo_almacenamiento, costo_demanda_perdida,
+        tiempo_revision, lead_time, caso_base, id_producto, nombre_producto
     ):
         # Número de dias de simulación
         self.dias = periodos
         self.politica = politica
         self.caso_base = caso_base
+        self.id_producto = id_producto
+        self.nombre_producto = nombre_producto
         if self.caso_base:
             self.demanda = demanda
         else:
@@ -156,6 +160,9 @@ class Bodega:
                 if i % self.tiempo_entre_pedidos == 0 and self.rop > self.inventario[i]:
                     self.cant_ordenada[i] = self.Q_optimo
                     #print(f"\nPEDIDO REALIZADO DIA {i}: {self.cant_ordenada[i]}\n")
+            
+            elif self.politica == "nuestra":
+                pass
 
 
             # REVISO CANTIDAD QUE VENDO
@@ -181,35 +188,12 @@ class Bodega:
         
         self.periodos_sin_stock()
             
-    def guardar_datos(self, excel, politica):
-        ''' Exporto datos de la bodega en archivo excel según la política ingresada '''
-
-        col1 = "Días"
-        col2 = "Demanda [unidades]"
-        col3 = "Inventario [unidades]"
-        col4 = "Ventas [$]"
-        col5 = "Pedidos [unidades]"
-        col6 = "Demanda insatisfecha [unidades]"
-        col7 = "Costo monetario stock out [$]"
-
-        data = pd.DataFrame({
-            col1:list(self.demanda.keys()),
-            col2:list(self.demanda.values()),
-            col3:self.inventario,
-            col4:list(self.ventas.values()),
-            col5:self.cant_ordenada,
-            col6:self.demanda_insatisfecha,
-            col7:list(self.d_insatisfecha_diaria.values())
-        })
-        data.to_excel(excel, sheet_name=politica, index=False)
-    
-
 # ----- ----- Se calculan los kpi ----- ----- 
     def nivel_servicio(self):
         ''' Calcula kpi del nivel de servicio '''
-        total_demanda = sum(self.demanda.values())
-        total_ventas = sum(self.ventas.values())
-        return total_ventas/total_demanda
+        demanda_total = sum(self.demanda.values())
+        total_vendido = sum(self.ventas.values())
+        return demanda_total, total_vendido
     
     def calcular_costos(self):
         ''' Calcula costos de la bodega '''
@@ -249,7 +233,7 @@ class Bodega:
 
     def guardar_kpi(self):
         ''' Retorna valores de kpi en diccionario '''
-        nivel_servicio = self.nivel_servicio()
+        demanda_total, total_vendido = self.nivel_servicio()
         costo_pedidos, costo_almacenamiento, costo_demanda_insatisfecha, costo_total = self.calcular_costos()
         
         rotura_stock = self.rotura_stock()
@@ -263,7 +247,8 @@ class Bodega:
         inventario_promedio = np.mean(self.inventario)*self.precio_venta
                
         data =  {
-            "Nivel servicio [%]": np.round(nivel_servicio*100,3),
+            "Demanda total [unidades]": demanda_total,
+            "Total vendido [unidades]": total_vendido,
             "Rotura de stock [%]": np.round(rotura_stock,3),
 
             "Total pedidos [unidades]": sum(self.cant_ordenada), 
@@ -297,13 +282,16 @@ class Bodega:
         plt.step(list(range(0, self.dias)), self.inventario, where='post')
         plt.xlabel("Días")
         plt.ylabel("Inventario")
-        if self.politica == "(s,S)":
-            titulo = self.politica + " : (" + str(np.ceil(self.rop)) + ", " + str(self.max) + ")"
-        elif self.politica == "EOQ":
-            titulo = self.politica + "Q_optimo = " + str(np.ceil(self.Q_optimo)) + " - rop = " + str(np.ceil(self.rop))
+        titulo = f'Producto {self.id_producto}: {self.nombre_producto} \n {self.politica} : ({np.ceil(self.rop)} , {str(self.max)}) - T: {str(self.tiempo_revision)}\n'
         plt.title(titulo)
-        folder = 'graficos'
+        folder = 'item_' + str(self.id_producto)+'/T'+str(self.tiempo_revision)+'/graficos'
         dir = os.path.join(actual_path, folder)
         if not os.path.exists(dir):
             os.makedirs(dir)
         fig.savefig(folder+"/caso_base.png")
+        plt.close('all')
+    
+    def grafico_kpi_diario(self):
+        fig = plt.figure()
+        #plt.plot(range(self.dias), self.cant_ordenada)
+        #plt.show()

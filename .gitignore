@@ -3,5 +3,7 @@ sample_data.xlsx
 ~$sample_data.xlsx
 *.pdf
 *.xlsx
+*.csv
 */
+*.txt
 a.py
