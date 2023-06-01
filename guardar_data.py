@@ -11,15 +11,15 @@ def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
     data_excel_max = {}
     data_excel_std = {}
     for valores in valores_politica:
-        #print(f"\nPOLÍTICA {valores}")
+        # print(f"\nPOLÍTICA {valores}")
         resultado_kpi = resultado[str(valores)]
         rows = []
         for j in range(0, replicas):
             kpi = resultado_kpi["repeticion"+str(j)]
             rows.append(list(kpi.values()))
-        
-        df = pd.DataFrame(rows, columns = list(kpi.keys()))
-        #df.to_excel(excel, sheet_name='kpi'+str(valores), index=True)
+
+        df = pd.DataFrame(rows, columns=list(kpi.keys()))
+        # df.to_excel(excel, sheet_name='kpi'+str(valores), index=True)
 
         nombre_columna = list(df.columns.values)
         columna_mean = []
@@ -29,20 +29,23 @@ def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
 
         demanda_total = sum(list(df[nombre_columna[0]]))
         total_vendido = sum(list(df[nombre_columna[1]]))
-        nivel_servicio = np.round((total_vendido/demanda_total)*100,3)
-        quiebre_stock = np.round(((demanda_total-total_vendido)/demanda_total)*100,3)
+        nivel_servicio = np.round((total_vendido/demanda_total)*100, 3)
+        quiebre_stock = np.round(
+            ((demanda_total-total_vendido)/demanda_total)*100, 3
+        )
 
         for i in range(3, len(nombre_columna)):
-            #print(nombre_columna[i], df[nombre_columna[i]].describe().loc[['mean']].tolist())
-            valores_kpi_mean = df[nombre_columna[i]].describe().loc[['mean']].tolist()
-            valores_kpi_min = df[nombre_columna[i]].describe().loc[['min']].tolist()
-            valores_kpi_max = df[nombre_columna[i]].describe().loc[['max']].tolist()
-            valores_kpi_std = df[nombre_columna[i]].describe().loc[['std']].tolist()
+            # print(nombre_columna[i], df[nombre_columna[i]].describe().loc[['mean']].tolist())
+            columna = df[nombre_columna[i]]
+            valores_kpi_mean = columna.describe().loc[['mean']].tolist()
+            valores_kpi_min = columna.describe().loc[['min']].tolist()
+            valores_kpi_max = columna.describe().loc[['max']].tolist()
+            valores_kpi_std = columna.describe().loc[['std']].tolist()
 
-            valores_kpi_mean = map(str,valores_kpi_mean)
-            valores_kpi_min = map(str,valores_kpi_min)
-            valores_kpi_max = map(str,valores_kpi_max)
-            valores_kpi_std = map(str,valores_kpi_std)
+            valores_kpi_mean = map(str, valores_kpi_mean)
+            valores_kpi_min = map(str, valores_kpi_min)
+            valores_kpi_max = map(str, valores_kpi_max)
+            valores_kpi_std = map(str, valores_kpi_std)
 
             columna_mean.append(str(''.join(valores_kpi_mean)))
             columna_min.append(str(''.join(valores_kpi_min)))
@@ -53,11 +56,11 @@ def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
             data_excel_min[str(valores)] = columna_min
             data_excel_max[str(valores)] = columna_max
             data_excel_std[str(valores)] = columna_std
-        
+
         # Se agrega dato de nivel de servicio al par (s,S)
         data_excel[str(valores)].append(nivel_servicio)
-        data_excel[str(valores)].append(quiebre_stock)        
-        
+        data_excel[str(valores)].append(quiebre_stock)
+
     # KPI por columna y cada fila tiene pares (s,S)
     df2 = pd.DataFrame(data_excel).transpose()
     columnas = nombre_columna[3:]
@@ -82,6 +85,7 @@ def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
 
     return nombre_columna, data_excel
 
+
 def guardar_matriz_heatmap_kpi(
         nombre_columna, rango_s_S, data_excel, excel, tiempos, producto, nombre
 ):
@@ -100,7 +104,7 @@ def guardar_matriz_heatmap_kpi(
                     fila.append('0')
                 fila_int = [float(x) for x in fila]
             matriz.append(fila_int)
-        
+
         df3 = pd.DataFrame(matriz)
         df3.to_excel(excel, sheet_name="Mean-kpi"+str(kpi), index=True)
 
@@ -133,6 +137,7 @@ def guardar_matriz_heatmap_kpi(
     plt.close('all')
     return valores_matriz
 
+
 # https://gist.github.com/CMCDragonkai/dd420c0800cba33142505eff5a7d2589
 def surface_plot(matrix, **kwargs):
     # acquire the cartesian coordinate matrices from the matrix
@@ -146,9 +151,8 @@ def surface_plot(matrix, **kwargs):
     return (fig, ax, surf)
 
 
-def guardar_3d(valores_matriz, nombre_columna,tiempos, producto, nombre):
+def guardar_3d(valores_matriz, nombre_columna, tiempos, producto, nombre):
     i = 0
-    mycmap = plt.get_cmap('gist_earth')
 
     for matriz_kpi in valores_matriz:
         z = np.array(matriz_kpi)
@@ -157,24 +161,25 @@ def guardar_3d(valores_matriz, nombre_columna,tiempos, producto, nombre):
 
         fig = plt.figure()
         ax = plt.axes(projection='3d')
-        ax.scatter(x,y,z, s = 5)
+        ax.scatter(x, y, z, s=5)
 
         ax.set_xlabel('s')
         ax.set_ylabel('S')
         ax.set_zlabel('z')
-        
+
         titulo = f'Producto {producto}: {nombre} \n {nombre_columna[i]}\n'
         ax.set_title(titulo)
 
         actual_path = os.getcwd()
         folder = 'item_' + str(producto)+'/T'+str(tiempos)+'/graficos'
-        
+
         dir = os.path.join(actual_path, folder)
         if not os.path.exists(dir):
             os.makedirs(dir)
         fig.savefig(folder+'/3d_kpi_'+str(i)+".png")
         i += 1
     plt.close('all')
+
 
 def histogramas_kpi(valores_politica, resultado, replicas, excel):
     pass

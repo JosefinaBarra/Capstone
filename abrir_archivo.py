@@ -11,6 +11,7 @@ with open("dda_885.txt") as f:
             demanda_real[dia] = int(separado[i])
             dia += 1
 
+
 def valores_producto(lista_productos):
     precios = {}
     for producto in lista_productos:
@@ -28,5 +29,5 @@ def valores_producto(lista_productos):
         precios[str(producto)]['final_price'] = final_price
         precios[str(producto)]['cost'] = cost
         precios[str(producto)]['storage'] = storage
-    
+
     return precios
