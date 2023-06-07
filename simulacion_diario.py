@@ -232,8 +232,16 @@ class Bodega:
             "Costo total [$]": np.round(costo_total, 3),
 
             "Total ventas [unidades]": total_ventas,
-            "Ingresos por ventas [$]": np.round(total_ventas*self.precio_venta, 3),
-            "Balance [$]": np.round(total_ventas*self.precio_venta - costo_pedidos - costo_almacenamiento, 3)
+            "Ingresos por ventas [$]": np.round(
+                total_ventas*self.precio_venta, 3
+            ),
+            "Balance [$]": np.round(
+                total_ventas * self.precio_venta - (
+                    costo_pedidos + costo_almacenamiento
+                ), 3
+            ),
+            "Demanda": np.sum(list(self.demanda.values())),
+            "Ventas": np.sum(list(self.ventas.values()))
         }
 
         # Dias seguidas sin stock

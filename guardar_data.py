@@ -169,11 +169,13 @@ def guardar_kpi_repeticion(resultado, repeticiones, politica_elegida, excel):
     costo_almacenamiento = []
     dias_sin_stock = []
     total_sin_vender = []
-    costo_demanda_insatisfecha = []
+    costo_demanda_insat = []
     costo_total = []
     total_ventas = []
     ingresos = []
     balance = []
+    demanda = []
+    ventas = []
 
     data = {}
 
@@ -186,11 +188,13 @@ def guardar_kpi_repeticion(resultado, repeticiones, politica_elegida, excel):
         costo_almacenamiento.append(kpi["Costo almacenamiento [$]"])
         dias_sin_stock.append(kpi["Cantidad dias sin stock [dias]"])
         total_sin_vender.append(kpi["Cantidad total sin vender [unidades]"])
-        costo_demanda_insatisfecha.append(kpi["Costo demanda insatisfecha [$]"])
+        costo_demanda_insat.append(kpi["Costo demanda insatisfecha [$]"])
         costo_total.append(kpi["Costo total [$]"])
         total_ventas.append(kpi["Total ventas [unidades]"])
         ingresos.append(kpi["Ingresos por ventas [$]"])
         balance.append(kpi["Balance [$]"])
+        demanda.append(kpi["Demanda"])
+        ventas.append(kpi["Ventas"])
 
     data["Nivel servicio [%]"] = nivel_servicio
     data["Rotura de stock [%]"] = rotura_stock
@@ -199,11 +203,17 @@ def guardar_kpi_repeticion(resultado, repeticiones, politica_elegida, excel):
     data["Costo almacenamiento [$]"] = costo_almacenamiento
     data["Cantidad dias sin stock [dias]"] = dias_sin_stock
     data["Cantidad total sin vender [unidades]"] = total_sin_vender
-    data["Costo demanda insatisfecha [$]"] = costo_demanda_insatisfecha
+    data["Costo demanda insatisfecha [$]"] = costo_demanda_insat
     data["Costo total [$]"] = costo_total
     data["Total ventas [unidades]"] = total_ventas
     data["Ingresos por ventas [$]"] = ingresos
     data["Balance [$]"] = balance
+
+    total_demanda = sum(demanda)
+    total_ventas = sum(ventas)
+    total_no_vendido = total_demanda - total_ventas
+    print(f'Nivel servicio: {round((total_ventas/total_demanda)*100, 3)} %')
+    print(f'Rotura stock: {round((total_no_vendido/total_demanda)*100, 3)} %')
 
     df = pd.DataFrame(data)
     df.to_excel(excel, sheet_name=politica_elegida, index=True)

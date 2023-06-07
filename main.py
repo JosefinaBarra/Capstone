@@ -19,8 +19,8 @@ excel = pd.ExcelWriter(
     engine_kwargs={"options": {"strings_to_numbers": True}}
 )
 
-replicas = 10
-periodos = 80
+replicas = 1000
+periodos = 365
 politica = "(s,S)"
 
 resultado_base = {}
@@ -28,7 +28,7 @@ resultado_base = {}
 caso_base = True
 no_mostro_grafico_base = True
 
-rango_s_S = 5
+rango_s_S = 51
 demanda_real = demanda_historica()
 
 productos = [885]
@@ -61,7 +61,7 @@ valores_politica = [
     (s, S) for s in range(rango_s_S) for S in range(rango_s_S) if s <= S
 ]
 
-resultado_simulacion = {}
+valores_politica = [(35,50)]
 for producto in productos:
     resultado = {}
     nombre = precios_productos[producto]['nombre']
@@ -91,11 +91,9 @@ for producto in productos:
 
             resultado[str(valores)][i] = s.guardar_kpi()
 
-    resultado_simulacion[producto] = resultado
-
-    politica_elegida = '(2, 3)'
+    politica_elegida = '(35, 50)'
     guardar_kpi_repeticion(resultado, replicas, politica_elegida, excel)
-
+    '''
     # Se guardan kpi por repetición en excel
     nombre_columna, data_excel = guardar_pares_kpi(
         valores_politica, resultado, replicas, excel
@@ -106,5 +104,5 @@ for producto in productos:
         nombre_columna, rango_s_S, data_excel, excel, nombre, item_id
     )
     guardar_3d(valores_matriz, nombre_columna, nombre, item_id)
-
+    '''
     excel.close()
