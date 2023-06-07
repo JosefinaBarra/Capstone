@@ -59,7 +59,7 @@ def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
 
     return nombre_columna, data_excel
 
-def guardar_matriz_heatmap_kpi(nombre_columna, rango_s_S, data_excel, excel):
+def guardar_matriz_heatmap_kpi(nombre_columna, rango_s_S, data_excel, excel, nombre, item_id):
     actual_path = os.getcwd()
     valores_matriz = []
     for kpi in range(0, len(nombre_columna)):
@@ -94,7 +94,8 @@ def guardar_matriz_heatmap_kpi(nombre_columna, rango_s_S, data_excel, excel):
         ax.set_xlabel("S")
         ax.set_ylabel("s")
 
-        ax.set_title(str(nombre_columna[kpi]))
+        titulo = f'{item_id}: {nombre}\n {str(nombre_columna[kpi])}'
+        ax.set_title(titulo)
         fig.tight_layout()
 
         folder = 'graficos'
@@ -120,7 +121,7 @@ def surface_plot(matrix, **kwargs):
     return (fig, ax, surf)
 
 
-def guardar_3d(valores_matriz, nombre_columna):
+def guardar_3d(valores_matriz, nombre_columna, nombre, item_id):
     i = 0
     mycmap = plt.get_cmap('gist_earth')
 
@@ -137,11 +138,12 @@ def guardar_3d(valores_matriz, nombre_columna):
         ax.set_ylabel('S')
         ax.set_zlabel('z')
 
-        ax.set_title(nombre_columna[i])
+        titulo = f'{item_id}: {nombre}\n {nombre_columna[i]}'
+        ax.set_title(titulo)
 
         actual_path = os.getcwd()
         folder = 'graficos'
-        
+
         dir = os.path.join(actual_path, folder)
         if not os.path.exists(dir):
             os.makedirs(dir)

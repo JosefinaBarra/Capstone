@@ -59,11 +59,6 @@ print(s.guardar_kpi())
 valores_politica = [(s, S) for s in range(rango_s_S) for S in range(rango_s_S) if s<=S]
 
 for producto in productos:
-    nombre = precios_productos[producto]['nombre']
-    sale_price = precios_productos[producto]['sale_price']
-    final_price = precios_productos[producto]['final_price']
-    cost = precios_productos[producto]['cost']
-    storage_cost = precios_productos[producto]['storage_cost']
     for valores in valores_politica:
         muestra_grafico = True
         resultado[str(valores)] = {}
@@ -75,16 +70,13 @@ for producto in productos:
                 politica=politica,
                 periodos=periodos,
                 demanda=None,
-                precio_venta=final_price,
-                costo_pedido=cost,
-                costo_almacenamiento=storage_cost,
-                costo_demanda_perdida=1200,
+                info_producto = precios_productos[producto],
                 tiempo_revision=1,  # Tieme que ser >= 1
                 lead_time=7,
                 caso_base=False
             )
             s.run()
- 
+
             if muestra_grafico:
                 #s.grafico()
                 muestra_grafico = False
@@ -94,10 +86,11 @@ for producto in productos:
     # Se guardan kpi por repetición en excel
     nombre_columna, data_excel = guardar_pares_kpi(valores_politica, resultado, replicas, excel)
 
-
     # Se genera matriz por cada kpi en nueva hoja
-    valores_matriz = guardar_matriz_heatmap_kpi(nombre_columna, rango_s_S, data_excel, excel)
-    guardar_3d(valores_matriz, nombre_columna)
+    nombre = precios_productos[producto]['nombre']
+    item_id = precios_productos[producto]['id']
+    valores_matriz = guardar_matriz_heatmap_kpi(nombre_columna, rango_s_S, data_excel, excel, nombre, item_id)
+    guardar_3d(valores_matriz, nombre_columna, nombre, item_id)
 
     excel.close()
 

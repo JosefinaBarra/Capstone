@@ -21,6 +21,7 @@ def data_productos(productos):
     for producto in productos:
         data[producto] = {}
         info = archivo.loc[archivo['item_id'] == producto]
+        data[producto]['id'] = producto
         data[producto]['nombre'] = info['prod_descr'].tolist()[0]
         data[producto]['sale_price'] = info['sale_price'].tolist()[0]
         data[producto]['final_price'] = info['final_price'].tolist()[0]
