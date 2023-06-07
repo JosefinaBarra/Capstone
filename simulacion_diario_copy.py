@@ -15,35 +15,32 @@ def scores(l):
 class Bodega:
     ''' Bodega con leadtime de 7 dias '''
     def __init__(
-        self, s, S, periodos, demanda, precio_venta,
-        costo_pedido, costo_almacenamiento, costo_demanda_perdida,
-        tiempo_revision, lead_time, caso_base, id_producto, nombre_producto
+        self, politica, periodos, demanda, info_producto,
+        tiempo_revision, lead_time
     ):
         # Número de dias de simulación
         self.dias = periodos
-        self.caso_base = caso_base
-        self.id_producto = id_producto
-        self.nombre_producto = nombre_producto
-        if self.caso_base:
-            self.demanda = demanda
-        else:
-            self.demanda = {}
+        #self.caso_base = caso_base
+        #if self.caso_base:
+        #    self.demanda = demanda
+        #else:
+        self.demanda = {}
 
-        # Ingresos por venta
-        self.precio_venta = precio_venta
-
-        # Costos
-        self.costo_pedido = costo_pedido
-        self.costo_almacenamiento = costo_almacenamiento
-        self.costo_demanda_perdida = costo_demanda_perdida
+        # Info producto
+        self.id_producto = info_producto['id']
+        self.nombre_producto = info_producto['nombre']
+        self.precio_venta = info_producto['precio_venta']
+        self.costo_pedido = info_producto['costo_pedido']
+        self.costo_almacenamiento = info_producto['costo_almacenamiento']
+        self.costo_demanda_perdida = info_producto['costo_demanda_perdida']
 
         self.tiempo_revision = tiempo_revision
 
         # Lead time pedido
         self.lead_time = lead_time
 
-        self.max = S
-        self.rop = s
+        self.rop = politica[0]
+        self.max = politica[1]
 
 
         # Resultados
@@ -69,48 +66,16 @@ class Bodega:
             self.demanda[i] = demanda_generada
         return self.demanda
 
-# -----  ----- POLÍTICA EOQ ----- ----- 
     def pedido_semana(self, dia):
         ''' Retorna la cantidad a pedir según la política '''
         if self.inventario[dia] <= self.rop:
             return self.max - self.inventario[dia]
         return 0
 
-
-    def eoq(self):
-        demanda_total = np.sum(list(self.demanda.values()))
-        self.Q_optimo = np.sqrt(
-            (2*demanda_total*self.costo_pedido)/(
-                self.costo_almacenamiento*self.dias
-            )
-        )
-        # print(
-        # f"(2 * {demanda_total} * {self.costo_pedido}) / ({
-        # self.costo_almacenamiento} * {self.dias}"
-        # )
-        # print(f"EOQ = {self.Q_optimo}\n")
-        return self.Q_optimo
-
-    def rop_eoq(self):
-        demanda_promedio = np.mean(list(self.demanda.values()))
-        demanda_total = np.sum(list(self.demanda.values()))
-
-        # Número esperado de ordenes
-        N = demanda_total / self.eoq()
-
-        # Punto de reorden
-        L = self.dias / N
-        self.tiempo_entre_pedidos = np.ceil(L)
-        R = demanda_promedio*L
-        # print(f"N = {np.ceil(N)}, L = {np.ceil(L)}, R = {np.ceil(R)}")
-        return R
-
-# ----- ----- ----- ----- ----- ----- ----- 
-
     def run(self):
         ''' Corre simulación de bodega por dia'''
-        if not self.caso_base:
-            self.demanda = self.generar_demanda()
+        #if not self.caso_base:
+        self.demanda = self.generar_demanda()
         self.inventario[0] = self.max
         encamino = False
         # print(f'En camino? {encamino} ')
