@@ -5,3 +5,5 @@ sample_data.xlsx
 *.xlsx
 */
 a.py
+*.csv
+*.txt
