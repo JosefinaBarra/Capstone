@@ -9,55 +9,64 @@ def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
     data_excel = {}
     data_excel_min = {}
     data_excel_max = {}
+    data_excel_std = {}
     for valores in valores_politica:
-        #print(f"\nPOLÍTICA {valores}")
+        # print(f"\nPOLÍTICA {valores}")
         resultado_kpi = resultado[str(valores)]
         rows = []
         for j in range(0, replicas):
             kpi = resultado_kpi["repeticion"+str(j)]
             rows.append(list(kpi.values()))
         
-        df = pd.DataFrame(rows, columns = list(kpi.keys()))
-        #df.to_excel(excel, sheet_name='kpi'+str(valores), index=True)
+        df = pd.DataFrame(rows, columns=list(kpi.keys()))
+        # df.to_excel(excel, sheet_name='kpi'+str(valores), index=True)
 
         nombre_columna = list(df.columns.values)
         columna_mean = []
         columna_min = []
         columna_max = []
+        columna_std = []
 
         for i in range(0, len(nombre_columna)):
             valores_kpi_mean = df[nombre_columna[i]].describe().loc[['mean']].tolist()
             valores_kpi_min = df[nombre_columna[i]].describe().loc[['min']].tolist()
             valores_kpi_max = df[nombre_columna[i]].describe().loc[['max']].tolist()
+            valores_kpi_std = df[nombre_columna[i]].describe().loc[['std']].tolist()
 
             valores_kpi_mean = map(str,valores_kpi_mean)
             valores_kpi_min = map(str,valores_kpi_min)
             valores_kpi_max = map(str,valores_kpi_max)
+            valores_kpi_std = map(str,valores_kpi_std)
 
             columna_mean.append(str(''.join(valores_kpi_mean)))
             columna_min.append(str(''.join(valores_kpi_min)))
             columna_max.append(str(''.join(valores_kpi_max)))
+            columna_std.append(str(''.join(valores_kpi_std)))
 
             data_excel[str(valores)] = columna_mean
             data_excel_min[str(valores)] = columna_min
             data_excel_max[str(valores)] = columna_max
+            data_excel_std[str(valores)] = columna_std
 
         #df.describe().loc[['mean','min','max']].to_excel(excel, sheet_name='kpi'+str(valores), index=True)
 
     # KPI por columna y cada fila tiene pares (s,S)
     df2 = pd.DataFrame(data_excel).transpose()
     df2.columns = nombre_columna
+
     df2.to_excel(excel, sheet_name='Mean', index=True)
 
     df2 = pd.DataFrame(data_excel_min).transpose()
-    df2.columns = nombre_columna
     df2.to_excel(excel, sheet_name='Min', index=True)
 
     df2 = pd.DataFrame(data_excel_max).transpose()
-    df2.columns = nombre_columna
     df2.to_excel(excel, sheet_name='Max', index=True)
 
+    df2 = pd.DataFrame(data_excel_std).transpose()
+    df2.to_excel(excel, sheet_name='Std', index=True)
+
     return nombre_columna, data_excel
+
 
 def guardar_matriz_heatmap_kpi(nombre_columna, rango_s_S, data_excel, excel, nombre, item_id):
     actual_path = os.getcwd()
@@ -75,7 +84,7 @@ def guardar_matriz_heatmap_kpi(nombre_columna, rango_s_S, data_excel, excel, nom
                     fila.append('0')
                 fila_int = [float(x) for x in fila]
             matriz.append(fila_int)
-        
+
         df3 = pd.DataFrame(matriz)
         df3.to_excel(excel, sheet_name="Mean-kpi"+str(kpi), index=True)
 
@@ -107,6 +116,7 @@ def guardar_matriz_heatmap_kpi(nombre_columna, rango_s_S, data_excel, excel, nom
         valores_matriz.append(matriz)
 
     return valores_matriz
+
 
 # https://gist.github.com/CMCDragonkai/dd420c0800cba33142505eff5a7d2589
 def surface_plot(matrix, **kwargs):
