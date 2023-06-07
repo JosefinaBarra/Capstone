@@ -4,7 +4,10 @@ import pandas as pd
 
 from simulacion_diario import Bodega
 from abrir_archivo import demanda_historica, data_productos
-from guardar_data import guardar_pares_kpi, guardar_matriz_heatmap_kpi, guardar_3d
+from guardar_data import (
+    guardar_pares_kpi, guardar_matriz_heatmap_kpi, guardar_3d,
+    guardar_kpi_repeticion
+)
 
 
 np.random.seed(0)
@@ -12,16 +15,14 @@ pd.set_option('display.float_format', lambda x: '%.3f' % x)
 
 excel = pd.ExcelWriter(
     'sample_data.xlsx',
-    engine="xlsxwriter", 
+    engine="xlsxwriter",
     engine_kwargs={"options": {"strings_to_numbers": True}}
 )
 
 replicas = 10
 periodos = 80
 politica = "(s,S)"
-#politica = "EOQ"   
 
-resultado = {}
 resultado_base = {}
 
 caso_base = True
@@ -56,9 +57,16 @@ print(s.guardar_kpi())
 '''
 
 # BUSCAMOS ÓPTIMO PARA PARÁMETROS
-valores_politica = [(s, S) for s in range(rango_s_S) for S in range(rango_s_S) if s<=S]
+valores_politica = [
+    (s, S) for s in range(rango_s_S) for S in range(rango_s_S) if s <= S
+]
 
+resultado_simulacion = {}
 for producto in productos:
+    resultado = {}
+    nombre = precios_productos[producto]['nombre']
+    item_id = precios_productos[producto]['id']
+
     for valores in valores_politica:
         muestra_grafico = True
         resultado[str(valores)] = {}
@@ -70,7 +78,7 @@ for producto in productos:
                 politica=politica,
                 periodos=periodos,
                 demanda=None,
-                info_producto = precios_productos[producto],
+                info_producto=precios_productos[producto],
                 tiempo_revision=1,  # Tieme que ser >= 1
                 lead_time=7,
                 caso_base=False
@@ -78,21 +86,25 @@ for producto in productos:
             s.run()
 
             if muestra_grafico:
-                #s.grafico()
+                # s.grafico()
                 muestra_grafico = False
 
-            resultado[str(valores)]["repeticion"+str(i)] = s.guardar_kpi()
+            resultado[str(valores)][i] = s.guardar_kpi()
+
+    resultado_simulacion[producto] = resultado
+
+    politica_elegida = '(2, 3)'
+    guardar_kpi_repeticion(resultado, replicas, politica_elegida, excel)
 
     # Se guardan kpi por repetición en excel
-    nombre_columna, data_excel = guardar_pares_kpi(valores_politica, resultado, replicas, excel)
+    nombre_columna, data_excel = guardar_pares_kpi(
+        valores_politica, resultado, replicas, excel
+    )
 
     # Se genera matriz por cada kpi en nueva hoja
-    nombre = precios_productos[producto]['nombre']
-    item_id = precios_productos[producto]['id']
-    valores_matriz = guardar_matriz_heatmap_kpi(nombre_columna, rango_s_S, data_excel, excel, nombre, item_id)
+    valores_matriz = guardar_matriz_heatmap_kpi(
+        nombre_columna, rango_s_S, data_excel, excel, nombre, item_id
+    )
     guardar_3d(valores_matriz, nombre_columna, nombre, item_id)
 
     excel.close()
-
-# Guardo histogramas de kpi en carpetas
-#histogramas_png(valores_politica, replicas)

@@ -2,7 +2,6 @@ import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits import mplot3d
 
 
 def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
@@ -15,9 +14,9 @@ def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
         resultado_kpi = resultado[str(valores)]
         rows = []
         for j in range(0, replicas):
-            kpi = resultado_kpi["repeticion"+str(j)]
+            kpi = resultado_kpi[j]
             rows.append(list(kpi.values()))
-        
+
         df = pd.DataFrame(rows, columns=list(kpi.keys()))
         # df.to_excel(excel, sheet_name='kpi'+str(valores), index=True)
 
@@ -28,27 +27,25 @@ def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
         columna_std = []
 
         for i in range(0, len(nombre_columna)):
-            valores_kpi_mean = df[nombre_columna[i]].describe().loc[['mean']].tolist()
-            valores_kpi_min = df[nombre_columna[i]].describe().loc[['min']].tolist()
-            valores_kpi_max = df[nombre_columna[i]].describe().loc[['max']].tolist()
-            valores_kpi_std = df[nombre_columna[i]].describe().loc[['std']].tolist()
+            mean_kpi = df[nombre_columna[i]].describe().loc[['mean']].tolist()
+            min_kpi = df[nombre_columna[i]].describe().loc[['min']].tolist()
+            max_kpi = df[nombre_columna[i]].describe().loc[['max']].tolist()
+            std_kpi = df[nombre_columna[i]].describe().loc[['std']].tolist()
 
-            valores_kpi_mean = map(str,valores_kpi_mean)
-            valores_kpi_min = map(str,valores_kpi_min)
-            valores_kpi_max = map(str,valores_kpi_max)
-            valores_kpi_std = map(str,valores_kpi_std)
+            mean_kpi = map(str, mean_kpi)
+            min_kpi = map(str, min_kpi)
+            max_kpi = map(str, max_kpi)
+            std_kpi = map(str, std_kpi)
 
-            columna_mean.append(str(''.join(valores_kpi_mean)))
-            columna_min.append(str(''.join(valores_kpi_min)))
-            columna_max.append(str(''.join(valores_kpi_max)))
-            columna_std.append(str(''.join(valores_kpi_std)))
+            columna_mean.append(str(''.join(mean_kpi)))
+            columna_min.append(str(''.join(min_kpi)))
+            columna_max.append(str(''.join(max_kpi)))
+            columna_std.append(str(''.join(std_kpi)))
 
             data_excel[str(valores)] = columna_mean
             data_excel_min[str(valores)] = columna_min
             data_excel_max[str(valores)] = columna_max
             data_excel_std[str(valores)] = columna_std
-
-        #df.describe().loc[['mean','min','max']].to_excel(excel, sheet_name='kpi'+str(valores), index=True)
 
     # KPI por columna y cada fila tiene pares (s,S)
     df2 = pd.DataFrame(data_excel).transpose()
@@ -68,7 +65,9 @@ def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
     return nombre_columna, data_excel
 
 
-def guardar_matriz_heatmap_kpi(nombre_columna, rango_s_S, data_excel, excel, nombre, item_id):
+def guardar_matriz_heatmap_kpi(
+        nombre_columna, rango_s_S, data_excel, excel, nombre, item_id
+):
     actual_path = os.getcwd()
     valores_matriz = []
     for kpi in range(0, len(nombre_columna)):
@@ -122,7 +121,9 @@ def guardar_matriz_heatmap_kpi(nombre_columna, rango_s_S, data_excel, excel, nom
 def surface_plot(matrix, **kwargs):
     # acquire the cartesian coordinate matrices from the matrix
     # x is rows, y is cols
-    (y, x) = np.meshgrid(np.arange(matrix.shape[1]), np.arange(matrix.shape[0]))
+    (y, x) = np.meshgrid(
+        np.arange(matrix.shape[1]), np.arange(matrix.shape[0])
+    )
 
     fig = plt.figure()
     ax = fig.axes(projection='3d')
@@ -133,7 +134,6 @@ def surface_plot(matrix, **kwargs):
 
 def guardar_3d(valores_matriz, nombre_columna, nombre, item_id):
     i = 0
-    mycmap = plt.get_cmap('gist_earth')
 
     for matriz_kpi in valores_matriz:
         z = np.array(matriz_kpi)
@@ -142,7 +142,7 @@ def guardar_3d(valores_matriz, nombre_columna, nombre, item_id):
 
         fig = plt.figure()
         ax = plt.axes(projection='3d')
-        ax.scatter(x,y,z, s = 5)
+        ax.scatter(x, y, z, s=5)
 
         ax.set_xlabel('s')
         ax.set_ylabel('S')
@@ -159,3 +159,51 @@ def guardar_3d(valores_matriz, nombre_columna, nombre, item_id):
             os.makedirs(dir)
         fig.savefig(folder+'/3d_kpi_'+str(i)+".png")
         i += 1
+
+
+def guardar_kpi_repeticion(resultado, repeticiones, politica_elegida, excel):
+    nivel_servicio = []
+    rotura_stock = []
+    total_pedidos = []
+    costo_pedidos = []
+    costo_almacenamiento = []
+    dias_sin_stock = []
+    total_sin_vender = []
+    costo_demanda_insatisfecha = []
+    costo_total = []
+    total_ventas = []
+    ingresos = []
+    balance = []
+
+    data = {}
+
+    for repeticion in range(0, repeticiones):
+        kpi = resultado[politica_elegida][repeticion]
+        nivel_servicio.append(kpi["Nivel servicio [%]"])
+        rotura_stock.append(kpi["Rotura de stock [%]"])
+        total_pedidos.append(kpi["Total pedidos [unidades]"])
+        costo_pedidos.append(kpi["Costo pedidos [$]"])
+        costo_almacenamiento.append(kpi["Costo almacenamiento [$]"])
+        dias_sin_stock.append(kpi["Cantidad dias sin stock [dias]"])
+        total_sin_vender.append(kpi["Cantidad total sin vender [unidades]"])
+        costo_demanda_insatisfecha.append(kpi["Costo demanda insatisfecha [$]"])
+        costo_total.append(kpi["Costo total [$]"])
+        total_ventas.append(kpi["Total ventas [unidades]"])
+        ingresos.append(kpi["Ingresos por ventas [$]"])
+        balance.append(kpi["Balance [$]"])
+
+    data["Nivel servicio [%]"] = nivel_servicio
+    data["Rotura de stock [%]"] = rotura_stock
+    data["Total pedidos [unidades]"] = total_pedidos
+    data["Costo pedidos [$]"] = costo_pedidos
+    data["Costo almacenamiento [$]"] = costo_almacenamiento
+    data["Cantidad dias sin stock [dias]"] = dias_sin_stock
+    data["Cantidad total sin vender [unidades]"] = total_sin_vender
+    data["Costo demanda insatisfecha [$]"] = costo_demanda_insatisfecha
+    data["Costo total [$]"] = costo_total
+    data["Total ventas [unidades]"] = total_ventas
+    data["Ingresos por ventas [$]"] = ingresos
+    data["Balance [$]"] = balance
+
+    df = pd.DataFrame(data)
+    df.to_excel(excel, sheet_name=politica_elegida, index=True)
