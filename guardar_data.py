@@ -10,17 +10,19 @@ def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
     data_excel_max = {}
     data_excel_std = {}
     for valores in valores_politica:
-        # print(f"\nPOLÍTICA {valores}")
         resultado_kpi = resultado[str(valores)]
         rows = []
+        col = []
         for j in range(0, replicas):
             kpi = resultado_kpi[j]
+            col.append(list(kpi.keys()))
             rows.append(list(kpi.values()))
+        data = rows[:12] + rows[15:]
 
-        df = pd.DataFrame(rows, columns=list(kpi.keys()))
+        df = pd.DataFrame(data, columns=list(kpi.keys()))
         # df.to_excel(excel, sheet_name='kpi'+str(valores), index=True)
-
         nombre_columna = list(df.columns.values)
+        nombre_columna = nombre_columna[:12] + nombre_columna[15:]
         columna_mean = []
         columna_min = []
         columna_max = []

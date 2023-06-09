@@ -134,27 +134,8 @@ class Bodega:
 
         self.periodos_sin_stock()
 
-    def guardar_datos(self, excel, politica):
-        ''' Exporto datos de la bodega en archivo excel según la política '''
-
-        col1 = "Días"
-        col2 = "Demanda [unidades]"
-        col3 = "Inventario [unidades]"
-        col4 = "Ventas [$]"
-        col5 = "Pedidos [unidades]"
-        col6 = "Demanda insatisfecha [unidades]"
-        col7 = "Costo monetario stock out [$]"
-
-        data = pd.DataFrame({
-            col1: list(self.demanda.keys()),
-            col2: list(self.demanda.values()),
-            col3: self.inventario,
-            col4: list(self.ventas.values()),
-            col5: self.cant_ordenada,
-            col6: self.demanda_insatisfecha,
-            col7: list(self.d_insatisfecha_diaria.values())
-        })
-        data.to_excel(excel, sheet_name=politica, index=False)
+    def periodo_transitorio(self):
+        print(self.inventario)
 
 # ----- ----- Se calculan los kpi ----- -----
     def nivel_servicio(self):
@@ -241,7 +222,8 @@ class Bodega:
                 ), 3
             ),
             "Demanda": np.sum(list(self.demanda.values())),
-            "Ventas": np.sum(list(self.ventas.values()))
+            "Ventas": np.sum(list(self.ventas.values())),
+            "Inventario": self.inventario
         }
 
         # Dias seguidas sin stock
