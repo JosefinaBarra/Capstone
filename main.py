@@ -20,7 +20,7 @@ excel = pd.ExcelWriter(
 )
 
 replicas = 10
-periodos = 30
+periodos = 365
 politica = "(s,S)"
 
 resultado_base = {}
