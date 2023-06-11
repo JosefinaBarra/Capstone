@@ -19,7 +19,7 @@ excel = pd.ExcelWriter(
     engine_kwargs={"options": {"strings_to_numbers": True}}
 )
 
-replicas = 10
+replicas = 1000
 periodos = 365
 politica = "(s,S)"
 
@@ -60,6 +60,7 @@ print(s.guardar_kpi())
 valores_politica = [
     (s, S) for s in range(rango_s_S) for S in range(rango_s_S) if s <= S
 ]
+valores_politica = np.array(valores_politica,'i,i')
 
 #valores_politica = [(35, 50)]
 for producto in productos:
@@ -67,6 +68,7 @@ for producto in productos:
     nombre = precios_productos[producto]['nombre']
     item_id = precios_productos[producto]['id']
 
+    # Se crea la matriz de valores política
     for valores in valores_politica:
         muestra_grafico = True
         resultado[str(valores)] = {}
@@ -90,9 +92,6 @@ for producto in productos:
 
             resultado[str(valores)][i] = s.guardar_kpi()
 
-    politica_elegida = '(2, 4)'
-    guardar_kpi_repeticion(resultado, replicas, politica_elegida, excel)
-
     # Se guardan kpi por repetición en excel
     nombre_columna, data_excel = guardar_pares_kpi(
         valores_politica, resultado, replicas, excel
@@ -103,5 +102,9 @@ for producto in productos:
         nombre_columna, rango_s_S, data_excel, excel, nombre, item_id
     )
     guardar_3d(valores_matriz, nombre_columna, nombre, item_id)
+
+    # Se guardan los kpi de la mejor política
+    politica_elegida = '(2, 4)'
+    guardar_kpi_repeticion(resultado, replicas, politica_elegida, excel)
 
     excel.close()

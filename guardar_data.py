@@ -202,12 +202,11 @@ def guardar_kpi_repeticion(resultado, repeticiones, politica_elegida, excel):
 
     inventario_prom = []
     inventario0 = inventario[0]
-    print(inventario0, "\n")
-    for i in range(1, len(inventario[0])+1):
-        print(inventario0[:i])
-        inventario_prom.append(sum(inventario0[:i])/(i))
-    print(inventario_prom)
-    plt.plot(range(0, len(inventario0)), inventario_prom)
+    print("Inventario:\n", inventario, "\n")
+    # https://stackoverflow.com/questions/43436044/mean-value-of-each-element-in-multiple-lists-python
+    inventario_prom = np.mean(np.vstack(inventario), axis=0).tolist()
+    print(inventario_prom, "\n")
+    plt.plot(range(0, len(inventario_prom)), inventario_prom)
     plt.show()
 
     data["Nivel servicio [%]"] = nivel_servicio
