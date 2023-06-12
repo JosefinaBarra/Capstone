@@ -114,8 +114,9 @@ def guardar_matriz_heatmap_kpi(
             os.makedirs(dir)
         fig.savefig(folder+'/kpi'+str(kpi)+".png")
 
+        matriz = np.array(matriz,'f')
         valores_matriz.append(matriz)
-
+    plt.close('all')
     return valores_matriz
 
 
@@ -161,7 +162,7 @@ def guardar_3d(valores_matriz, nombre_columna, nombre, item_id):
             os.makedirs(dir)
         fig.savefig(folder+'/3d_kpi_'+str(i)+".png")
         i += 1
-
+    plt.close('all')
 
 def guardar_kpi_repeticion(resultado, repeticiones, politica_elegida, excel):
     nivel_servicio = []
@@ -201,11 +202,8 @@ def guardar_kpi_repeticion(resultado, repeticiones, politica_elegida, excel):
         inventario.append(kpi["Inventario"])
 
     inventario_prom = []
-    inventario0 = inventario[0]
-    print("Inventario:\n", inventario, "\n")
     # https://stackoverflow.com/questions/43436044/mean-value-of-each-element-in-multiple-lists-python
     inventario_prom = np.mean(np.vstack(inventario), axis=0).tolist()
-    print(inventario_prom, "\n")
     plt.plot(range(0, len(inventario_prom)), inventario_prom)
     plt.show()
 

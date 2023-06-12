@@ -25,10 +25,8 @@ class Bodega:
         self.dias = periodos
         self.politica = politica
         self.caso_base = caso_base
-        if self.caso_base:
-            self.demanda = demanda
-        else:
-            self.demanda = {}
+        self.demanda = demanda
+
 
         self.nombre_producto = info_producto['nombre']
         self.item_id = info_producto['id']
@@ -53,16 +51,16 @@ class Bodega:
         self.ventas = {}
 
         # Inventario inicial
-        self.inventario = [0]*self.dias
+        self.inventario = {}
 
         # Pedidos realizados
-        self.cant_ordenada = [0]*self.dias
+        self.cant_ordenada = {}
 
         # Demanda insatisfecha
-        self.demanda_insatisfecha = [0]*self.dias
+        self.demanda_insatisfecha = {}
 
         # Productos almacenados al final del día i
-        self.almacenamiento = [0]*self.dias
+        self.almacenamiento = {}
 
     # Demanda por dia
     def generar_demanda(self):
@@ -80,19 +78,15 @@ class Bodega:
 
     def run(self):
         ''' Corre simulación de bodega por dia'''
-        if not self.caso_base:
-            self.demanda = self.generar_demanda()
+        #self.demanda = self.generar_demanda()
         self.inventario[0] = self.max
         encamino = False
         # print(f'En camino? {encamino} ')
 
-        if self.politica == "EOQ":
-            self.rop = self.rop_eoq()
-
         for i in range(0, self.dias):
             # print(f"----- DIA {i} -----")
             # ACTUALIZO PEDIDO
-            if (i >= self.lead_time) and (
+            if (i >= self.lead_time) and ((i-self.lead_time) in self.cant_ordenada) and (
                 self.cant_ordenada[i-self.lead_time] != 0
             ):
                 self.inventario[i] = (
@@ -134,9 +128,6 @@ class Bodega:
 
         self.periodos_sin_stock()
 
-    def periodo_transitorio(self):
-        print(self.inventario)
-
 # ----- ----- Se calculan los kpi ----- -----
     def nivel_servicio(self):
         ''' Calcula kpi del nivel de servicio '''
@@ -146,12 +137,12 @@ class Bodega:
 
     def calcular_costos(self):
         ''' Calcula costos de la bodega '''
-        total_pedidos = sum(self.cant_ordenada)
+        total_pedidos = sum(list(self.cant_ordenada.values()))
         costo_pedidos = total_pedidos * self.costo_pedido
 
-        costo_almacenamiento = sum(self.almacenamiento)
+        costo_almacenamiento = sum(list(self.almacenamiento.values()))
 
-        total_demanda_perdida = sum(self.demanda_insatisfecha)
+        total_demanda_perdida = sum(list(self.demanda_insatisfecha.values()))
         costo_demanda_insatisfecha = total_demanda_perdida * self.precio_venta
 
         costo_total = (
@@ -162,19 +153,19 @@ class Bodega:
 
     def rotura_stock(self):
         ''' Se calcula la proporción de pedidos perdidos'''
-        total_demanda_perdida = sum(self.demanda_insatisfecha)
-        total_demanda = sum(self.demanda.values())
+        total_demanda_perdida = sum(list(self.demanda_insatisfecha.values()))
+        total_demanda = sum(list(self.demanda.values()))
 
         return (total_demanda_perdida/total_demanda)*100
 
     def perdida_monetaria_quiebre_stock(self):
         ''' Retorna el valor monetario por las unidades no vendidas'''
-        return sum(self.demanda_insatisfecha)*self.precio_venta
+        return sum(list(self.demanda_insatisfecha.values()))*self.precio_venta
 
     def periodos_sin_stock(self):
         ''' [1] Función de stackoverflow
         Cuenta ocurrencias seguidas de demanda insatisfecha != 0'''
-        d = {'D': scores(self.demanda_insatisfecha)}
+        d = {'D': scores(list(self.demanda_insatisfecha.values()))}
 
         datos = {}
         for i in range(0, 6):
@@ -190,7 +181,7 @@ class Bodega:
         rotura_stock = self.rotura_stock()
 
         periodos_sin_stock = self.periodos_sin_stock()
-        cant_dias_sin_stock = np.count_nonzero(self.demanda_insatisfecha)
+        cant_dias_sin_stock = np.count_nonzero(list(self.demanda_insatisfecha.values()))
 
         total_ventas = np.sum(list(self.ventas.values()))
         total_sin_vender = sum(self.demanda_insatisfecha)
@@ -199,7 +190,7 @@ class Bodega:
             "Nivel servicio [%]": np.round(nivel_servicio*100, 3),
             "Rotura de stock [%]": np.round(rotura_stock, 3),
 
-            "Total pedidos [unidades]": sum(self.cant_ordenada),
+            "Total pedidos [unidades]": sum(list(self.cant_ordenada.values())),
             "Costo pedidos [$]": np.round(costo_pedidos, 3),
 
             "Costo almacenamiento [$]": np.round(costo_almacenamiento, 3),
