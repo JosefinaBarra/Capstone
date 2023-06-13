@@ -2,6 +2,8 @@ import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import pprint
+import json
 
 
 def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
@@ -164,6 +166,7 @@ def guardar_3d(valores_matriz, nombre_columna, nombre, item_id):
         i += 1
     plt.close('all')
 
+
 def guardar_kpi_repeticion(resultado, repeticiones, politica_elegida, excel):
     nivel_servicio = []
     rotura_stock = []
@@ -223,9 +226,40 @@ def guardar_kpi_repeticion(resultado, repeticiones, politica_elegida, excel):
     total_demanda = sum(demanda)
     total_ventas = sum(ventas)
     total_no_vendido = total_demanda - total_ventas
-    print(f'Nivel servicio: {round((total_ventas/total_demanda)*100, 3)} %')
-    print(f'Rotura stock: {round((total_no_vendido/total_demanda)*100, 3)} %')
+    #print(f'Nivel servicio: {round((total_ventas/total_demanda)*100, 3)} %')
+    #print(f'Rotura stock: {round((total_no_vendido/total_demanda)*100, 3)} %')
 
     df = pd.DataFrame(data)
     df.to_excel(excel, sheet_name=politica_elegida, index=True)
 
+
+excel = pd.ExcelWriter(
+    'sample_data.xlsx',
+    engine="xlsxwriter",
+    engine_kwargs={"options": {"strings_to_numbers": True}}
+)
+
+
+with open('valores_kpi.json') as file_object:
+    # store file data in object
+    data = json.load(file_object)
+pprint.pprint(data)
+'''
+nombre_columna, data_excel = guardar_pares_kpi(
+    valores_politica, resultado, replicas, excel
+)
+
+# Se genera matriz por cada kpi en nueva hoja
+valores_matriz = guardar_matriz_heatmap_kpi(
+    nombre_columna, rango_s_S, data_excel, excel, nombre, item_id
+)
+local_search(valores_matriz, nombre_columna)
+
+guardar_3d(valores_matriz, nombre_columna, nombre, item_id)
+
+# Se guardan los kpi de la mejor política
+politica_elegida = input("Política: ")
+guardar_kpi_repeticion(resultado, replicas, politica_elegida, excel)
+
+excel.close()
+'''

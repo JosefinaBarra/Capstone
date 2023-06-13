@@ -1,26 +1,19 @@
 
 import numpy as np
 import pandas as pd
-import pprint
+import json
 import time
 from simulacion_diario import Bodega
 from abrir_archivo import demanda_historica, data_productos
-from guardar_data import (
-    guardar_pares_kpi, guardar_matriz_heatmap_kpi, guardar_3d,
-    guardar_kpi_repeticion
-)
 from local_search import local_search
-from calculos import calcular_kpi, calcular_mean_kpi, calcular_min_kpi, calcular_max_kpi, matriz_kpi
+from calculos import (
+    calcular_kpi, calcular_mean_kpi, calcular_min_kpi,
+    calcular_max_kpi, matriz_kpi
+)
 
 start = time.time()
 np.random.seed(0)
 pd.set_option('display.float_format', lambda x: '%.3f' % x)
-
-excel = pd.ExcelWriter(
-    'sample_data.xlsx',
-    engine="xlsxwriter",
-    engine_kwargs={"options": {"strings_to_numbers": True}}
-)
 
 replicas = 1000
 periodos = 365
@@ -46,11 +39,11 @@ for replica in range(0, replicas):
     demanda_simulacion[replica] = demanda 
 prom_demanda = int(np.ceil(np.mean(prom_demanda)))
 
-rango_s_S = 10*prom_demanda
+rango_s_S = 51
 
 # BUSCAMOS ÓPTIMO PARA PARÁMETROS
 valores_politica = [
-    (s, S) for s in range(rango_s_S) for S in range(rango_s_S) if s <= S
+    (s, S) for s in range(0, rango_s_S, 5) for S in range(0, rango_s_S, 5) if s <= S
 ]
 valores_politica = np.array(valores_politica,'i,i')
 
@@ -92,26 +85,20 @@ for producto in productos:
     print("C")
     max_kpi = calcular_max_kpi(valores_kpi)
     print("D")
-    matriz_kpi(mean_kpi)
+
+    class NpEncoder(json.JSONEncoder):
+        def default(self, obj):
+            if isinstance(obj, np.integer):
+                return int(obj)
+            if isinstance(obj, np.floating):
+                return float(obj)
+            if isinstance(obj, np.ndarray):
+                return obj.tolist()
+            return json.JSONEncoder.default(self, obj)
+
+    with open("valores_kpi.json", "w") as file:
+        json.dump(valores_kpi, file, cls=NpEncoder, indent=4)
+
     end = time.time()
-    print("TOTAL ", end-start)   
-    # Se guardan kpi por repetición en excel
-    '''
-    nombre_columna, data_excel = guardar_pares_kpi(
-        valores_politica, resultado, replicas, excel
-    )
-    
-    # Se genera matriz por cada kpi en nueva hoja
-    valores_matriz = guardar_matriz_heatmap_kpi(
-        nombre_columna, rango_s_S, data_excel, excel, nombre, item_id
-    )
-    local_search(valores_matriz, nombre_columna)
-
-    guardar_3d(valores_matriz, nombre_columna, nombre, item_id)
-
-    # Se guardan los kpi de la mejor política
-    politica_elegida = input("Política: ")
-    guardar_kpi_repeticion(resultado, replicas, politica_elegida, excel)
-
-    excel.close()
-    '''
+    print("TOTAL ", end-start)
+    # Se guardan kpi de simulaciones en archivo json

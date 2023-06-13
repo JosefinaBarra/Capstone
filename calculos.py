@@ -2,6 +2,7 @@ import numpy as np
 import pprint
 import pandas as pd
 
+
 def calcular_kpi(resultado, valores_politica):
     valores_kpi = {}
     for valores in valores_politica:
@@ -14,8 +15,7 @@ def calcular_kpi(resultado, valores_politica):
             ventas = sum(list(resultado_politica[i].ventas.values()))
             demanda_insatisfecha = sum(list(resultado_politica[i].demanda_insatisfecha.values()))
             almacenamiento = sum(list(resultado_politica[i].almacenamiento.values()))
-            inventario = sum(list(resultado_politica[i].inventario.values()))
-            
+
             valores_kpi[str(valores)][i]['Nivel de servicio'] = (ventas/demanda)*100
             valores_kpi[str(valores)][i]['Rotura stock'] = (demanda_insatisfecha/demanda)*100
             valores_kpi[str(valores)][i]['Total pedidos'] = pedidos
@@ -27,10 +27,8 @@ def calcular_kpi(resultado, valores_politica):
             valores_kpi[str(valores)][i]['Costo total'] = pedidos * resultado_politica[i].costo_pedido + almacenamiento + demanda_insatisfecha * resultado_politica[i].costo_demanda_perdida
             valores_kpi[str(valores)][i]['Ingresos'] = ventas * resultado_politica[i].precio_venta
             valores_kpi[str(valores)][i]['Balance'] = ventas * resultado_politica[i].precio_venta - (almacenamiento + pedidos * resultado_politica[i].costo_pedido)
-            
-    pprint.pprint(valores_kpi)
-    print(pd.DataFrame(valores_kpi))
-    return valores_kpi 
+    return valores_kpi
+
 
 def calcular_mean_kpi(valores_kpi):
     mean_kpi = {}
@@ -41,6 +39,7 @@ def calcular_mean_kpi(valores_kpi):
         mean_kpi[str(politica)] = dict(df2)
     return mean_kpi
 
+
 def calcular_min_kpi(valores_kpi):
     min_kpi = {}
     for politica, kpi in valores_kpi.items():
@@ -49,6 +48,7 @@ def calcular_min_kpi(valores_kpi):
         df2 = df.min(axis=0)
         min_kpi[str(politica)] = dict(df2)
     return min_kpi
+
 
 def calcular_max_kpi(valores_kpi):
     min_kpi = {}
@@ -59,6 +59,7 @@ def calcular_max_kpi(valores_kpi):
         min_kpi[str(politica)] = dict(df2)
     return min_kpi
 
+
 # https://www.pythonforbeginners.com/basics/tuple-string-to-tuple-in-python
 def str_tuple(myStr):
     myStr = myStr.replace("(", "")
@@ -67,6 +68,7 @@ def str_tuple(myStr):
     myList = myStr.split()
     myList = list(map(int, myList))
     return tuple(myList)
+
 
 def matriz_kpi(kpi):
     pprint.pprint(kpi)
@@ -80,5 +82,4 @@ def matriz_kpi(kpi):
             col = politica_tupla[1]
             matriz[row][col] = resultado[lista_kpi[i]]
         matriz_kpi[lista_kpi[i]] = matriz
-    pprint.pprint(matriz_kpi)
     return matriz_kpi
