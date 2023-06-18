@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import json
 import time
+from parametros import *
 from simulacion_diario import Bodega
 from abrir_archivo import demanda_historica, data_productos
 from local_search import local_search
@@ -10,20 +11,17 @@ from calculos import (
     calcular_kpi, calcular_mean_kpi, calcular_min_kpi,
     calcular_max_kpi, matriz_kpi
 )
+from guardar_data import (
+    guardar_pares_kpi, guardar_matriz_heatmap_kpi, guardar_3d,
+    guardar_kpi_repeticion
+)
 
 start = time.time()
 np.random.seed(0)
 pd.set_option('display.float_format', lambda x: '%.3f' % x)
 
-replicas = 1000
-periodos = 365
-politica = "(s,S)"
-
-resultado_base = {}
-
 demanda_real = demanda_historica()
 
-productos = [885]
 precios_productos = data_productos(productos)
 
 demanda_simulacion = {}
@@ -36,23 +34,22 @@ for replica in range(0, replicas):
         demanda_generada = np.random.poisson(3.825)
         demanda[i] = demanda_generada
     prom_demanda.append(np.mean(list(demanda.values())))
-    demanda_simulacion[replica] = demanda 
+    demanda_simulacion[replica] = demanda
 prom_demanda = int(np.ceil(np.mean(prom_demanda)))
-
-rango_s_S = 51
-
-# BUSCAMOS ÓPTIMO PARA PARÁMETROS
-valores_politica = [
-    (s, S) for s in range(0, rango_s_S, 5) for S in range(0, rango_s_S, 5) if s <= S
-]
-valores_politica = np.array(valores_politica,'i,i')
 
 #valores_politica = [(35, 50)]
 for producto in productos:
+    excel = pd.ExcelWriter(
+        str(producto)+'.xlsx',
+        engine="xlsxwriter",
+        engine_kwargs={"options": {"strings_to_numbers": True}}
+    )
+
     resultado = {}
     resultado_bodega = {}
     nombre = precios_productos[producto]['nombre']
     item_id = precios_productos[producto]['id']
+    print(precios_productos, "\n")
 
     # Se crea la matriz de valores política
     for valores in valores_politica:
@@ -73,18 +70,33 @@ for producto in productos:
                 caso_base=False
             )
             s.run()
-            resultado_bodega[str(valores)].append(s)
-            #resultado[str(valores)][i] = s.guardar_kpi()
+            #resultado_bodega[str(valores)].append(s)
+            resultado[str(valores)][i] = s.guardar_kpi()
 
+    politica_elegida = '(35, 50)'
+    guardar_kpi_repeticion(resultado, replicas, politica_elegida, excel)
+
+    # Se guardan kpi por repetición en excel
+    nombre_columna, data_excel = guardar_pares_kpi(
+        valores_politica, resultado, replicas, excel
+    )
+
+    # Se genera matriz por cada kpi en nueva hoja
+    valores_matriz = guardar_matriz_heatmap_kpi(
+        nombre_columna, rango_s_S, data_excel, excel, nombre, item_id
+    )
+    guardar_3d(valores_matriz, nombre_columna, nombre, item_id)
+
+    excel.close()
+    end = time.time()
+    print("TOTAL ", end-start)
+
+    '''
     #pprint.pprint(resultado)
     valores_kpi = calcular_kpi(resultado_bodega, valores_politica)
-    print("A")
     mean_kpi = calcular_mean_kpi(valores_kpi)
-    print("B")
     min_kpi = calcular_min_kpi(valores_kpi)
-    print("C")
     max_kpi = calcular_max_kpi(valores_kpi)
-    print("D")
 
     class NpEncoder(json.JSONEncoder):
         def default(self, obj):
@@ -96,9 +108,7 @@ for producto in productos:
                 return obj.tolist()
             return json.JSONEncoder.default(self, obj)
 
-    with open("valores_kpi.json", "w") as file:
+    with open("valores_kpi_"+str(producto)+".json", "w") as file:
         json.dump(valores_kpi, file, cls=NpEncoder, indent=4)
-
-    end = time.time()
-    print("TOTAL ", end-start)
     # Se guardan kpi de simulaciones en archivo json
+    '''

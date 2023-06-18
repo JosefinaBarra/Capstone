@@ -4,6 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pprint
 import json
+from parametros import *
+from itertools import groupby
 
 
 def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
@@ -17,14 +19,16 @@ def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
         col = []
         for j in range(0, replicas):
             kpi = resultado_kpi[j]
+            #kpi = resultado_kpi[str(j)]
             col.append(list(kpi.keys()))
             rows.append(list(kpi.values()))
         data = rows[:12] + rows[15:]
 
         df = pd.DataFrame(data, columns=list(kpi.keys()))
-        # df.to_excel(excel, sheet_name='kpi'+str(valores), index=True)
+        #print(valores, df.describe())
         nombre_columna = list(df.columns.values)
-        nombre_columna = nombre_columna[:12] + nombre_columna[15:]
+        nombre_columna.pop(-1)
+
         columna_mean = []
         columna_min = []
         columna_max = []
@@ -76,9 +80,9 @@ def guardar_matriz_heatmap_kpi(
     valores_matriz = []
     for kpi in range(0, len(nombre_columna)):
         matriz = []
-        for i in range(rango_s_S):
+        for i in range(0, rango_s_S, 5):
             fila = []
-            for j in range(rango_s_S):
+            for j in range(0, rango_s_S, 5):
                 if i <= j:
                     tupla = "("+str(i)+", "+str(j)+")"
                     dato = data_excel[tupla][kpi]
@@ -100,8 +104,12 @@ def guardar_matriz_heatmap_kpi(
 
         # Show all ticks and label them with the respective list entries
         ax.xaxis.tick_top()
-        ax.set_xticks(np.arange(0, rango_s_S, 10))
-        ax.set_yticks(np.arange(0, rango_s_S, 10))
+        x = [i for i in range(0, rango_s_S, 5)]
+        default_x_ticks = range(len(matriz[0]))
+        plt.xticks(default_x_ticks, x)
+        plt.yticks(default_x_ticks, x)
+
+
 
         ax.set_xlabel("S")
         ax.set_ylabel("s")
@@ -110,7 +118,7 @@ def guardar_matriz_heatmap_kpi(
         ax.set_title(titulo)
         fig.tight_layout()
 
-        folder = 'graficos'
+        folder = str(item_id)+'graficos'
         dir = os.path.join(actual_path, folder)
         if not os.path.exists(dir):
             os.makedirs(dir)
@@ -157,7 +165,7 @@ def guardar_3d(valores_matriz, nombre_columna, nombre, item_id):
         ax.set_title(titulo)
 
         actual_path = os.getcwd()
-        folder = 'graficos'
+        folder = str(item_id)+'graficos'
 
         dir = os.path.join(actual_path, folder)
         if not os.path.exists(dir):
@@ -191,13 +199,13 @@ def guardar_kpi_repeticion(resultado, repeticiones, politica_elegida, excel):
         nivel_servicio.append(kpi["Nivel servicio [%]"])
         rotura_stock.append(kpi["Rotura de stock [%]"])
         total_pedidos.append(kpi["Total pedidos [unidades]"])
+        total_ventas.append(kpi["Total ventas [unidades]"])
+        total_sin_vender.append(kpi["Total sin vender [unidades]"])
         costo_pedidos.append(kpi["Costo pedidos [$]"])
         costo_almacenamiento.append(kpi["Costo almacenamiento [$]"])
-        dias_sin_stock.append(kpi["Cantidad dias sin stock [dias]"])
-        total_sin_vender.append(kpi["Cantidad total sin vender [unidades]"])
         costo_demanda_insat.append(kpi["Costo demanda insatisfecha [$]"])
         costo_total.append(kpi["Costo total [$]"])
-        total_ventas.append(kpi["Total ventas [unidades]"])
+        dias_sin_stock.append(kpi["Cantidad dias sin stock [dias]"])
         ingresos.append(kpi["Ingresos por ventas [$]"])
         balance.append(kpi["Balance [$]"])
         demanda.append(kpi["Demanda"])
@@ -226,40 +234,36 @@ def guardar_kpi_repeticion(resultado, repeticiones, politica_elegida, excel):
     total_demanda = sum(demanda)
     total_ventas = sum(ventas)
     total_no_vendido = total_demanda - total_ventas
-    #print(f'Nivel servicio: {round((total_ventas/total_demanda)*100, 3)} %')
-    #print(f'Rotura stock: {round((total_no_vendido/total_demanda)*100, 3)} %')
+    print(f'Nivel servicio: {round((total_ventas/total_demanda)*100, 3)} %')
+    print(f'Rotura stock: {round((total_no_vendido/total_demanda)*100, 3)} %')
 
     df = pd.DataFrame(data)
     df.to_excel(excel, sheet_name=politica_elegida, index=True)
 
-
-excel = pd.ExcelWriter(
-    'sample_data.xlsx',
-    engine="xlsxwriter",
-    engine_kwargs={"options": {"strings_to_numbers": True}}
-)
-
-
-with open('valores_kpi.json') as file_object:
-    # store file data in object
-    data = json.load(file_object)
-pprint.pprint(data)
 '''
-nombre_columna, data_excel = guardar_pares_kpi(
-    valores_politica, resultado, replicas, excel
-)
+for producto in productos:
+    excel = pd.ExcelWriter(
+        str(producto)+'.xlsx',
+        engine="xlsxwriter",
+        engine_kwargs={"options": {"strings_to_numbers": True}}
+    )
 
-# Se genera matriz por cada kpi en nueva hoja
-valores_matriz = guardar_matriz_heatmap_kpi(
-    nombre_columna, rango_s_S, data_excel, excel, nombre, item_id
-)
-local_search(valores_matriz, nombre_columna)
+    with open('valores_kpi_'+str(producto)+'.json') as file_object:
+        # store file data in object
+        data = json.load(file_object)
 
-guardar_3d(valores_matriz, nombre_columna, nombre, item_id)
+    guardar_pares_kpi(valores_politica, data, replicas, excel)
+    
+    excel.close()
+    # Se genera matriz por cada kpi en nueva hoja
+    valores_matriz = guardar_matriz_heatmap_kpi(
+        nombre_columna, rango_s_S, data_excel, excel, nombre, item_id
+    )
+    local_search(valores_matriz, nombre_columna)
 
-# Se guardan los kpi de la mejor política
-politica_elegida = input("Política: ")
-guardar_kpi_repeticion(resultado, replicas, politica_elegida, excel)
+    guardar_3d(valores_matriz, nombre_columna, nombre, item_id)
 
-excel.close()
-'''
+    # Se guardan los kpi de la mejor política
+    politica_elegida = input("Política: ")
+    guardar_kpi_repeticion(resultado, replicas, politica_elegida, excel)
+    '''

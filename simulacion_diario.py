@@ -27,7 +27,6 @@ class Bodega:
         self.caso_base = caso_base
         self.demanda = demanda
 
-
         self.nombre_producto = info_producto['nombre']
         self.item_id = info_producto['id']
 
@@ -63,13 +62,6 @@ class Bodega:
         self.almacenamiento = {}
 
     # Demanda por dia
-    def generar_demanda(self):
-        ''' Genera demanda diaria según distribución '''
-        for i in range(0, self.dias):
-            demanda_generada = np.random.poisson(3.825)
-            self.demanda[i] = demanda_generada
-        return self.demanda
-
     def pedido_semana(self, dia, politica):
         ''' Retorna la cantidad a pedir según la política '''
         if self.inventario[dia] <= self.rop:
@@ -175,52 +167,38 @@ class Bodega:
 
     def guardar_kpi(self):
         ''' Retorna valores de kpi en diccionario '''
-        nivel_servicio = self.nivel_servicio()
-        costo_pedidos, costo_almacenamiento, costo_demanda_insatisfecha, costo_total = self.calcular_costos()
-
-        rotura_stock = self.rotura_stock()
-
+        demanda = sum(list(self.demanda.values()))
+        pedidos = sum(list(self.cant_ordenada.values()))
+        ventas = sum(list(self.ventas.values()))
+        demanda_insatisfecha = sum(list(self.demanda_insatisfecha.values()))
+        almacenamiento = sum(list(self.almacenamiento.values()))
+ 
         periodos_sin_stock = self.periodos_sin_stock()
         cant_dias_sin_stock = np.count_nonzero(list(self.demanda_insatisfecha.values()))
 
-        total_ventas = np.sum(list(self.ventas.values()))
-        total_sin_vender = sum(self.demanda_insatisfecha)
-
         data = {
-            "Nivel servicio [%]": np.round(nivel_servicio*100, 3),
-            "Rotura de stock [%]": np.round(rotura_stock, 3),
+            "Nivel servicio [%]": (ventas/demanda)*100,
+            "Rotura de stock [%]": (demanda_insatisfecha/demanda)*100,
 
-            "Total pedidos [unidades]": sum(list(self.cant_ordenada.values())),
-            "Costo pedidos [$]": np.round(costo_pedidos, 3),
-
-            "Costo almacenamiento [$]": np.round(costo_almacenamiento, 3),
-
+            "Total pedidos [unidades]": pedidos,
+            "Total ventas [unidades]": ventas,
+            "Total sin vender [unidades]": demanda_insatisfecha,
+            "Costo pedidos [$]": pedidos*self.costo_pedido,
+            "Costo almacenamiento [$]": almacenamiento,
+            "Costo demanda insatisfecha [$]": demanda_insatisfecha * self.costo_demanda_perdida,
+            "Costo total [$]": pedidos*self.costo_pedido + almacenamiento + demanda_insatisfecha*self.costo_demanda_perdida,
             "Cantidad dias sin stock [dias]": cant_dias_sin_stock,
-            "Cantidad total sin vender [unidades]": total_sin_vender,
-            "Costo demanda insatisfecha [$]": np.round(
-                costo_demanda_insatisfecha, 3
-            ),
-
-            "Costo total [$]": np.round(costo_total, 3),
-
-            "Total ventas [unidades]": total_ventas,
-            "Ingresos por ventas [$]": np.round(
-                total_ventas*self.precio_venta, 3
-            ),
-            "Balance [$]": np.round(
-                total_ventas * self.precio_venta - (
-                    costo_pedidos + costo_almacenamiento
-                ), 3
-            ),
+            "Ingresos por ventas [$]": ventas*self.precio_venta,
+            "Balance [$]": ventas*self.precio_venta - (almacenamiento + pedidos*self.costo_pedido),
             "Demanda": np.sum(list(self.demanda.values())),
             "Ventas": np.sum(list(self.ventas.values())),
-            "Inventario": self.inventario
+            "Inventario": list(self.inventario.values())
         }
 
         # Dias seguidas sin stock
-        periodos = periodos_sin_stock
-        for p in periodos:
-            data[p] = periodos[p]
+        #periodos = periodos_sin_stock
+        #for p in periodos:
+        #    data[p] = periodos[p]
         return data
 
     def grafico(self):
