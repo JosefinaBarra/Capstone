@@ -2,6 +2,7 @@
 import numpy as np
 import pandas as pd
 import json
+import pprint
 import time
 from parametros import *
 from simulacion_diario import Bodega
@@ -13,7 +14,7 @@ from calculos import (
 )
 from guardar_data import (
     guardar_pares_kpi, guardar_matriz_heatmap_kpi, guardar_3d,
-    guardar_kpi_repeticion
+    guardar_kpi_repeticion, guardar_periodo_tran
 )
 
 start = time.time()
@@ -37,7 +38,6 @@ for replica in range(0, replicas):
     demanda_simulacion[replica] = demanda
 prom_demanda = int(np.ceil(np.mean(prom_demanda)))
 
-#valores_politica = [(35, 50)]
 for producto in productos:
     excel = pd.ExcelWriter(
         str(producto)+'.xlsx',
@@ -70,11 +70,8 @@ for producto in productos:
                 caso_base=False
             )
             s.run()
-            #resultado_bodega[str(valores)].append(s)
+            resultado_bodega[str(valores)].append(s)
             resultado[str(valores)][i] = s.guardar_kpi()
-
-    politica_elegida = '(35, 50)'
-    guardar_kpi_repeticion(resultado, replicas, politica_elegida, excel)
 
     # Se guardan kpi por repetición en excel
     nombre_columna, data_excel = guardar_pares_kpi(
@@ -86,6 +83,14 @@ for producto in productos:
         nombre_columna, rango_s_S, data_excel, excel, nombre, item_id
     )
     guardar_3d(valores_matriz, nombre_columna, nombre, item_id)
+
+    s = input("s: ")
+    S = input("S: ")
+    politica_elegida = '('+s+', '+S+')'
+
+    resultado = guardar_periodo_tran(resultado_bodega[politica_elegida])
+
+    guardar_kpi_repeticion(resultado, replicas, politica_elegida, excel)
 
     excel.close()
     end = time.time()

@@ -109,8 +109,6 @@ def guardar_matriz_heatmap_kpi(
         plt.xticks(default_x_ticks, x)
         plt.yticks(default_x_ticks, x)
 
-
-
         ax.set_xlabel("S")
         ax.set_ylabel("s")
 
@@ -190,12 +188,11 @@ def guardar_kpi_repeticion(resultado, repeticiones, politica_elegida, excel):
     balance = []
     demanda = []
     ventas = []
-    inventario = []
 
     data = {}
 
     for repeticion in range(0, repeticiones):
-        kpi = resultado[politica_elegida][repeticion]
+        kpi = resultado[repeticion]
         nivel_servicio.append(kpi["Nivel servicio [%]"])
         rotura_stock.append(kpi["Rotura de stock [%]"])
         total_pedidos.append(kpi["Total pedidos [unidades]"])
@@ -210,13 +207,6 @@ def guardar_kpi_repeticion(resultado, repeticiones, politica_elegida, excel):
         balance.append(kpi["Balance [$]"])
         demanda.append(kpi["Demanda"])
         ventas.append(kpi["Ventas"])
-        inventario.append(kpi["Inventario"])
-
-    inventario_prom = []
-    # https://stackoverflow.com/questions/43436044/mean-value-of-each-element-in-multiple-lists-python
-    inventario_prom = np.mean(np.vstack(inventario), axis=0).tolist()
-    plt.plot(range(0, len(inventario_prom)), inventario_prom)
-    plt.show()
 
     data["Nivel servicio [%]"] = nivel_servicio
     data["Rotura de stock [%]"] = rotura_stock
@@ -239,6 +229,29 @@ def guardar_kpi_repeticion(resultado, repeticiones, politica_elegida, excel):
 
     df = pd.DataFrame(data)
     df.to_excel(excel, sheet_name=politica_elegida, index=True)
+
+
+def guardar_periodo_tran(data):
+    inventario = []
+    kpi_sim = {}
+
+    for bodega in data:
+        inventario.append(list(bodega.inventario.values()))
+
+    inventario_prom = []
+    # https://stackoverflow.com/questions/43436044/mean-value-of-each-element-in-multiple-lists-python
+    inventario_prom = np.mean(np.vstack(inventario), axis=0).tolist()
+    plt.plot(range(0, len(inventario_prom)), inventario_prom)
+    plt.show()
+
+    periodo = int(input('Periodo transiente: '))
+    for bodega in data:
+        for i in range(periodo):
+            bodega.inventario.pop(i)
+
+    for i in range(0, len(data)):
+        kpi_sim[i] = data[i].guardar_kpi()
+    return kpi_sim
 
 '''
 for producto in productos:
