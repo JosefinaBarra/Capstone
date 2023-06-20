@@ -1,6 +1,6 @@
 import numpy as np
 
-replicas = 30
+replicas = 1000
 periodos = 365
 politica = "(s,S)"
 

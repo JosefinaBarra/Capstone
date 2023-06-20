@@ -67,10 +67,17 @@ class Bodega:
         if self.inventario[dia] <= self.rop:
             return self.max - self.inventario[dia]
         return 0
+    
+    def generar_demanda(self):
+        ''' Genera demanda diaria según distribución '''
+        for i in range(0, self.dias):
+            demanda_generada = np.random.poisson(3.825)
+            self.demanda[i] = demanda_generada
+        return self.demanda
 
     def run(self):
         ''' Corre simulación de bodega por dia'''
-        #self.demanda = self.generar_demanda()
+        self.demanda = self.generar_demanda()
         self.inventario[0] = self.max
         encamino = False
         # print(f'En camino? {encamino} ')
