@@ -74,15 +74,15 @@ def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
 
 
 def guardar_matriz_heatmap_kpi(
-        nombre_columna, rango_s_S, data_excel, excel, nombre, item_id
+        nombre_columna, rango_s_S, delta, data_excel, excel, nombre, item_id, sucursal
 ):
     actual_path = os.getcwd()
     valores_matriz = []
     for kpi in range(0, len(nombre_columna)):
         matriz = []
-        for i in range(0, rango_s_S, 5):
+        for i in range(0, rango_s_S, delta):
             fila = []
-            for j in range(0, rango_s_S, 5):
+            for j in range(0, rango_s_S, delta):
                 if i <= j:
                     tupla = "("+str(i)+", "+str(j)+")"
                     dato = data_excel[tupla][kpi]
@@ -116,7 +116,7 @@ def guardar_matriz_heatmap_kpi(
         ax.set_title(titulo)
         fig.tight_layout()
 
-        folder = str(item_id)+'graficos'
+        folder = str(item_id)+'/graficos/sucursal_'+str(sucursal)
         dir = os.path.join(actual_path, folder)
         if not os.path.exists(dir):
             os.makedirs(dir)
@@ -143,7 +143,7 @@ def surface_plot(matrix, **kwargs):
     return (fig, ax, surf)
 
 
-def guardar_3d(valores_matriz, nombre_columna, nombre, item_id):
+def guardar_3d(valores_matriz, nombre_columna, nombre, item_id, sucursal):
     i = 0
 
     for matriz_kpi in valores_matriz:
@@ -163,7 +163,7 @@ def guardar_3d(valores_matriz, nombre_columna, nombre, item_id):
         ax.set_title(titulo)
 
         actual_path = os.getcwd()
-        folder = str(item_id)+'graficos'
+        folder = str(item_id)+'/graficos/sucursal_'+str(sucursal)
 
         dir = os.path.join(actual_path, folder)
         if not os.path.exists(dir):
@@ -244,7 +244,7 @@ def guardar_periodo_tran(data):
     plt.plot(range(0, len(inventario_prom)), inventario_prom)
     plt.show()
 
-    periodo = int(input('Periodo transiente: '))
+    #periodo = int(input('Periodo transiente: '))
     for bodega in data:
         for i in range(periodo):
             bodega.inventario.pop(i)

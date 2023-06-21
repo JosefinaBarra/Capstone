@@ -67,7 +67,7 @@ class Bodega:
         if self.inventario[dia] <= self.rop:
             return self.max - self.inventario[dia]
         return 0
-    
+
     def generar_demanda(self):
         ''' Genera demanda diaria según distribución '''
         for i in range(0, self.dias):
@@ -77,7 +77,7 @@ class Bodega:
 
     def run(self):
         ''' Corre simulación de bodega por dia'''
-        self.demanda = self.generar_demanda()
+        #self.demanda = self.generar_demanda()
         self.inventario[0] = self.max
         encamino = False
         # print(f'En camino? {encamino} ')
@@ -130,8 +130,8 @@ class Bodega:
 # ----- ----- Se calculan los kpi ----- -----
     def nivel_servicio(self):
         ''' Calcula kpi del nivel de servicio '''
-        total_demanda = sum(self.demanda.values())
-        total_ventas = sum(self.ventas.values())
+        total_demanda = sum(list(self.demanda.values()))
+        total_ventas = sum(list(self.ventas.values()))
         return total_ventas/total_demanda
 
     def calcular_costos(self):
@@ -218,7 +218,7 @@ class Bodega:
         plt.ylabel("Inventario")
         titulo = f'Item {self.item_id}: {self.nombre_producto}\n({str(np.ceil(self.rop))}, {str(self.max)})'
         plt.title(titulo)
-        folder = 'graficos'
+        folder = str(self.item_id)+'/graficos'
         dir = os.path.join(actual_path, folder)
         if not os.path.exists(dir):
             os.makedirs(dir)
