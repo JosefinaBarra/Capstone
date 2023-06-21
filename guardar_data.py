@@ -1,11 +1,12 @@
-import os
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import pprint
 import json
-from parametros import *
+import os
+import pprint
 from itertools import groupby
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from openpyxl import load_workbook
 
 
 def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
@@ -56,12 +57,13 @@ def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
             data_excel_std[str(valores)] = columna_std
 
     # KPI por columna y cada fila tiene pares (s,S)
-    df2 = pd.DataFrame(data_excel).transpose()
-    df2.columns = nombre_columna
+    df_mean = pd.DataFrame(data_excel).transpose()
+    df_mean.columns = nombre_columna
 
-    df2.to_excel(excel, sheet_name='Mean', index=True)
+    df_mean.to_excel(excel, sheet_name='Mean', index=True)
 
     df2 = pd.DataFrame(data_excel_min).transpose()
+    df2.columns = nombre_columna
     df2.to_excel(excel, sheet_name='Min', index=True)
 
     df2 = pd.DataFrame(data_excel_max).transpose()
@@ -104,7 +106,7 @@ def guardar_matriz_heatmap_kpi(
 
         # Show all ticks and label them with the respective list entries
         ax.xaxis.tick_top()
-        x = [i for i in range(0, rango_s_S, 5)]
+        x = [i for i in range(0, rango_s_S, delta)]
         default_x_ticks = range(len(matriz[0]))
         plt.xticks(default_x_ticks, x)
         plt.yticks(default_x_ticks, x)
@@ -143,7 +145,7 @@ def surface_plot(matrix, **kwargs):
     return (fig, ax, surf)
 
 
-def guardar_3d(valores_matriz, nombre_columna, nombre, item_id, sucursal):
+def guardar_3d(valores_matriz, nombre_columna, nombre, item_id, sucursal, rango_s_S, delta):
     i = 0
 
     for matriz_kpi in valores_matriz:
@@ -159,6 +161,11 @@ def guardar_3d(valores_matriz, nombre_columna, nombre, item_id, sucursal):
         ax.set_ylabel('S')
         ax.set_zlabel('z')
 
+        x_values = [i for i in range(0, rango_s_S, delta)]
+        default_x_ticks = range(len(x[0]))
+        plt.xticks(default_x_ticks, x_values)
+        plt.yticks(default_x_ticks, x_values)
+
         titulo = f'{item_id}: {nombre}\n {nombre_columna[i]}'
         ax.set_title(titulo)
 
@@ -173,7 +180,7 @@ def guardar_3d(valores_matriz, nombre_columna, nombre, item_id, sucursal):
     plt.close('all')
 
 
-def guardar_kpi_repeticion(resultado, repeticiones, politica_elegida, excel):
+def guardar_kpi_repeticion(resultado, repeticiones, politica_elegida, producto, sucursal):
     nivel_servicio = []
     rotura_stock = []
     total_pedidos = []
@@ -228,10 +235,16 @@ def guardar_kpi_repeticion(resultado, repeticiones, politica_elegida, excel):
     print(f'Rotura stock: {round((total_no_vendido/total_demanda)*100, 3)} %')
 
     df = pd.DataFrame(data)
-    df.to_excel(excel, sheet_name=politica_elegida, index=True)
+
+    path = f'{producto}/{producto}sucursal_{sucursal}.xlsx'
+    book = load_workbook(path)
+    writer = pd.ExcelWriter(path, engine='openpyxl')
+    writer.book = book
+    df.to_excel(writer, sheet_name=politica_elegida, index=True)
+    writer.close()
 
 
-def guardar_periodo_tran(data):
+def guardar_periodo_tran(data, nombre, item_id, sucursal):
     inventario = []
     kpi_sim = {}
 
@@ -244,7 +257,25 @@ def guardar_periodo_tran(data):
     plt.plot(range(0, len(inventario_prom)), inventario_prom)
     plt.show()
 
-    #periodo = int(input('Periodo transiente: '))
+    max_inv = max(inventario_prom)
+    print(max_inv)
+
+    periodo = int(input('Periodo transiente: '))
+    fig = plt.figure()
+    plt.plot(range(0, len(inventario_prom)), inventario_prom)
+    plt.vlines(periodo, 0, max_inv, linestyles="dotted", colors="r")
+    plt.text(periodo, max_inv-1,f'  t: {periodo}', color='r')
+    titulo = f'{item_id}: {nombre}\nInventario promedio'
+    plt.title(titulo)
+
+    actual_path = os.getcwd()
+    folder = str(item_id)+'/graficos/sucursal_'+str(sucursal)
+
+    dir = os.path.join(actual_path, folder)
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+    fig.savefig(folder+'/inv_prom.png')
+
     for bodega in data:
         for i in range(periodo):
             bodega.inventario.pop(i)
