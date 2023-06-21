@@ -65,7 +65,7 @@ for producto in productos:
                 periodos=periodos,
                 demanda=demanda_simulacion[i],
                 info_producto=precios_productos[producto],
-                tiempo_revision=1,  # Tieme que ser >= 1
+                tiempo_revision=7,  # Tieme que ser >= 1. =7 Se revisa una vez a la semana
                 lead_time=7,
                 caso_base=False
             )

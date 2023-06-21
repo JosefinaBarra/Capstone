@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import itertools as it
 import collections as _col
 
+import obtener_demanda
+
 np.random.seed(0)
 
 
@@ -53,6 +55,7 @@ class Bodega:
         self.inventario = {}
 
         # Pedidos realizados
+        # Cantidad que se pide en el día i -> dada por la función pedido_semana
         self.cant_ordenada = {}
 
         # Demanda insatisfecha
@@ -64,9 +67,18 @@ class Bodega:
     # Demanda por dia
     def pedido_semana(self, dia, politica):
         ''' Retorna la cantidad a pedir según la política '''
-        if self.inventario[dia] <= self.rop:
-            return self.max - self.inventario[dia]
-        return 0
+        if politica == "(s, S)":
+            if self.inventario[dia] <= self.rop:
+                return self.max - self.inventario[dia]
+            return 0
+        elif politica == "pdi":
+            # realizar pronóstico de dos períodos estando en día (t)
+            # error: mse
+            pronostico = obtener_demanda(sucursal, item)
+            #if self.inventario[dia]  < (pronóstico_t+1 + error_t+1) + (pronóstico_t+2 + error_t+2):
+            if self.inventario[dia]  < (pronostico[0] + pronostico[2]) + (pronostico[1] + pronostico[2]):
+                #pido pronostico_t+2 + error t+2
+                pass
 
     def run(self):
         ''' Corre simulación de bodega por dia'''

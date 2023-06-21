@@ -2,10 +2,13 @@ import numpy as np
 
 replicas = 30
 periodos = 365
-politica = "(s,S)"
+politica = "pdi"
 
 resultado_base = {}
-productos = [885, 1437]
+#productos = [885, 1437]
+productos = [162, 1163]
+sucursal = 0
+
 
 rango_s_S = 51
 valores_politica = [
