@@ -70,6 +70,7 @@ def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
     df2 = pd.DataFrame(data_excel_std).transpose()
     df2.to_excel(excel, sheet_name='Std', index=True)
 
+    print("data_excel", data_excel)
     return nombre_columna, data_excel
 
 
@@ -78,18 +79,20 @@ def guardar_matriz_heatmap_kpi(
 ):
     actual_path = os.getcwd()
     valores_matriz = []
+    print("len(nombre_columna)", len(nombre_columna))
     for kpi in range(0, len(nombre_columna)):
         matriz = []
-        for i in range(0, rango_s_S, 5):
+        for i in range(0, rango_s_S, 1): #5
             fila = []
-            for j in range(0, rango_s_S, 5):
-                if i <= j:
-                    tupla = "("+str(i)+", "+str(j)+")"
-                    dato = data_excel[tupla][kpi]
-                    fila.append(dato)
-                else:
-                    fila.append('0')
-                fila_int = [float(x) for x in fila]
+            j = int(S)
+            if i <= j:
+                tupla = "("+str(i)+", "+str(j)+")"
+                print("tupla - kpi", tupla, kpi)
+                dato = data_excel[tupla][kpi]
+                fila.append(dato)
+            else:
+                fila.append('0')
+            fila_int = [float(x) for x in fila]
             matriz.append(fila_int)
 
         df3 = pd.DataFrame(matriz)
@@ -104,8 +107,10 @@ def guardar_matriz_heatmap_kpi(
 
         # Show all ticks and label them with the respective list entries
         ax.xaxis.tick_top()
-        x = [i for i in range(0, rango_s_S, 5)]
-        default_x_ticks = range(len(matriz[0]))
+        x = [i for i in range(0, rango_s_S, 1)]
+        default_x_ticks = range(rango_s_S) #range(len(matriz[0]))
+        print("default_x_ticks", default_x_ticks)
+        print("x", x)
         plt.xticks(default_x_ticks, x)
         plt.yticks(default_x_ticks, x)
 

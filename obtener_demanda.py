@@ -1,6 +1,5 @@
 from pronostico_demanda.metodos_demanda import promedio_movil_simple, suavizacion_exp_simp, suavizacion_exp_doble,suavizacion_exp_triple, sarima
 from pronostico_demanda.mejores_metodos import metodos_branch0
-from parametros import sucursal, productos
 from pronostico_demanda.cargar_datos import *
 import warnings
 warnings.filterwarnings('ignore')
