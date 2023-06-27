@@ -1,16 +1,12 @@
 # IMPORTS
-import json
 import os
 import pprint
 import time
 
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
 
 from abrir_archivo import data_productos, demanda_historica
-from calculos import (calcular_kpi, calcular_max_kpi, calcular_mean_kpi,
-                      calcular_min_kpi, matriz_kpi)
 from guardar_data import (guardar_3d, guardar_kpi_repeticion,
                           guardar_matriz_heatmap_kpi, guardar_pares_kpi,
                           guardar_periodo_tran)
@@ -35,44 +31,36 @@ pprint.pprint(precios_productos)
 prom_demanda = []
 #prom_demanda = int(np.ceil(np.mean(prom_demanda)))
 
-sucursales = {
-    0: 1.1222,
-    1: 0.5722,
-    2: 1.4722,
-    3: 1.4388,
-    4: 3.825,
-    5: 3.4666,
-    6: 1.0611,
-    7: 3.8555,
-    8: 0.8833,
-    9: 2.6833,
-    10: 5.288
-}
-
-demanda_por_sucursal = {}
+demanda_por_producto = {}
 # Hago n replicas de la demanda por periodo
-for sucursal in range(0, len(sucursales.keys())):
-    # Se genera la demanda por repetición
-    demanda_por_replica = {}
-    for replica in range(0, replicas):
-        demanda = {}
-        for i in range(0, periodos):
-            demanda_generada = np.random.poisson(sucursales[sucursal])
-            # Demanda en el día i
-            demanda[i] = demanda_generada
-        prom_demanda.append(np.mean(list(demanda.values())))
+for producto in productos:
+    demanda_por_sucursal = {}
+    sucursales_producto = sucursales[producto]
+    for sucursal in sucursales_producto.keys():
+        # Se genera la demanda por repetición
+        demanda_por_replica = {}
+        for replica in range(0, replicas):
+            demanda = {}
+            for i in range(0, periodos):
+                demanda_generada = np.random.poisson(sucursales_producto[sucursal])
+                # Demanda en el día i
+                demanda[i] = demanda_generada
+            prom_demanda.append(np.mean(list(demanda.values())))
 
-        # Demandas que se tienen por replica
-        demanda_por_replica[replica] = demanda
+            # Demandas que se tienen por replica
+            demanda_por_replica[replica] = demanda
 
-    # Demanda en la sucursal
-    demanda_por_sucursal[sucursal] = demanda_por_replica
+        # Demanda en la sucursal
+        demanda_por_sucursal[sucursal] = demanda_por_replica
+    demanda_por_producto[producto] = demanda_por_sucursal
 
 for producto in productos:
-    print(f'--- PRODUCTO: {producto} ---')
-    for sucursal in range(0, len(sucursales.keys())):
-        print(f'-- SUCURSAL: {sucursal} ---')
-        demanda_sucursal = demanda_por_sucursal[sucursal]
+    print(f'\n--- PRODUCTO: {producto} ---\n')
+    demanda_producto = demanda_por_producto[producto]
+    sucursales_producto = sucursales[producto]
+    for sucursal in sucursales_producto.keys():
+        print(f'\n-- PRODUCTO: {producto} SUCURSAL: {sucursal} ---\n')
+        demanda_sucursal = demanda_producto[sucursal]
 
         folder = str(producto)
         dir = os.path.join(actual_path, folder)
@@ -121,7 +109,7 @@ for producto in productos:
         print(f' Guardando gráfico heatmap')
         # Se genera matriz por cada kpi en nueva hoja
         valores_matriz = guardar_matriz_heatmap_kpi(
-            nombre_columna, rango_s_S, delta, data_excel, excel, nombre, item_id, sucursal
+            nombre_columna, rango_s_S, delta, data_excel, excel, nombre, item_id, sucursal, dif_s_S
         )
         print(f' Guardando gráfico 3D')
         guardar_3d(valores_matriz, nombre_columna, nombre, item_id, sucursal, rango_s_S, delta)

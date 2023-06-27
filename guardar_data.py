@@ -76,7 +76,7 @@ def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
 
 
 def guardar_matriz_heatmap_kpi(
-        nombre_columna, rango_s_S, delta, data_excel, excel, nombre, item_id, sucursal
+        nombre_columna, rango_s_S, delta, data_excel, excel, nombre, item_id, sucursal, dif_s_S
 ):
     actual_path = os.getcwd()
     valores_matriz = []
@@ -85,7 +85,7 @@ def guardar_matriz_heatmap_kpi(
         for i in range(0, rango_s_S, delta):
             fila = []
             for j in range(0, rango_s_S, delta):
-                if i <= j:
+                if i <= j and j-i <= dif_s_S:
                     tupla = "("+str(i)+", "+str(j)+")"
                     dato = data_excel[tupla][kpi]
                     fila.append(dato)
@@ -114,7 +114,7 @@ def guardar_matriz_heatmap_kpi(
         ax.set_xlabel("S")
         ax.set_ylabel("s")
 
-        titulo = f'{item_id}: {nombre}\n {str(nombre_columna[kpi])}'
+        titulo = f'S:{sucursal} P:{item_id}: {nombre}\n {str(nombre_columna[kpi])}'
         ax.set_title(titulo)
         fig.tight_layout()
 
@@ -166,7 +166,7 @@ def guardar_3d(valores_matriz, nombre_columna, nombre, item_id, sucursal, rango_
         plt.xticks(default_x_ticks, x_values)
         plt.yticks(default_x_ticks, x_values)
 
-        titulo = f'{item_id}: {nombre}\n {nombre_columna[i]}'
+        titulo = f'S:{sucursal} P:{item_id}: {nombre}\n {nombre_columna[i]}'
         ax.set_title(titulo)
 
         actual_path = os.getcwd()
@@ -255,17 +255,18 @@ def guardar_periodo_tran(data, nombre, item_id, sucursal):
     # https://stackoverflow.com/questions/43436044/mean-value-of-each-element-in-multiple-lists-python
     inventario_prom = np.mean(np.vstack(inventario), axis=0).tolist()
     plt.plot(range(0, len(inventario_prom)), inventario_prom)
-    plt.show()
+    #plt.show()
 
     max_inv = max(inventario_prom)
     print(max_inv)
 
-    periodo = int(input('Periodo transiente: '))
+    #periodo = int(input('Periodo transiente: '))
+    periodo = 0
     fig = plt.figure()
     plt.plot(range(0, len(inventario_prom)), inventario_prom)
     plt.vlines(periodo, 0, max_inv, linestyles="dotted", colors="r")
     plt.text(periodo, max_inv-1,f'  t: {periodo}', color='r')
-    titulo = f'{item_id}: {nombre}\nInventario promedio'
+    titulo = f'S:{sucursal} P:{item_id}: {nombre}\nInventario promedio'
     plt.title(titulo)
 
     actual_path = os.getcwd()
@@ -283,31 +284,3 @@ def guardar_periodo_tran(data, nombre, item_id, sucursal):
     for i in range(0, len(data)):
         kpi_sim[i] = data[i].guardar_kpi()
     return kpi_sim
-
-'''
-for producto in productos:
-    excel = pd.ExcelWriter(
-        str(producto)+'.xlsx',
-        engine="xlsxwriter",
-        engine_kwargs={"options": {"strings_to_numbers": True}}
-    )
-
-    with open('valores_kpi_'+str(producto)+'.json') as file_object:
-        # store file data in object
-        data = json.load(file_object)
-
-    guardar_pares_kpi(valores_politica, data, replicas, excel)
-    
-    excel.close()
-    # Se genera matriz por cada kpi en nueva hoja
-    valores_matriz = guardar_matriz_heatmap_kpi(
-        nombre_columna, rango_s_S, data_excel, excel, nombre, item_id
-    )
-    local_search(valores_matriz, nombre_columna)
-
-    guardar_3d(valores_matriz, nombre_columna, nombre, item_id)
-
-    # Se guardan los kpi de la mejor política
-    politica_elegida = input("Política: ")
-    guardar_kpi_repeticion(resultado, replicas, politica_elegida, excel)
-    '''

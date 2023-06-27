@@ -43,7 +43,8 @@ def par_optimo(producto, sucursal):
             for j in range(len(balance)):
                 if i == j:
                     if variables[i, j].x > 0:
-                        print("Valor de x[{},{}]: {}".format(i, j, variables[i, j].x))
+                        #print("Valor de x[{},{}]: {}".format(i, j, variables[i, j].x))
                         politica_elegida = df.iloc[i][0]
+                        print(politica_elegida)
                     count += 1
     return politica_elegida

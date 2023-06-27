@@ -36,7 +36,7 @@ class Bodega:
         # Costos
         self.costo_pedido = info_producto['cost']
         self.costo_almacenamiento = info_producto['storage_cost']
-        self.costo_demanda_perdida = 1200
+        self.costo_demanda_perdida = np.ceil((info_producto['sale_price'] - info_producto['cost'])*1.19)
 
         self.tiempo_revision = tiempo_revision
 
@@ -175,11 +175,14 @@ class Bodega:
     def guardar_kpi(self):
         ''' Retorna valores de kpi en diccionario '''
         demanda = sum(list(self.demanda.values()))
+        if demanda == 0:
+            print('ERROR demanda 0')
+            demanda = 1
         pedidos = sum(list(self.cant_ordenada.values()))
         ventas = sum(list(self.ventas.values()))
         demanda_insatisfecha = sum(list(self.demanda_insatisfecha.values()))
         almacenamiento = sum(list(self.almacenamiento.values()))
- 
+
         periodos_sin_stock = self.periodos_sin_stock()
         cant_dias_sin_stock = np.count_nonzero(list(self.demanda_insatisfecha.values()))
 
