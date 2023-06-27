@@ -72,6 +72,7 @@ def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
     df2 = pd.DataFrame(data_excel_std).transpose()
     df2.to_excel(excel, sheet_name='Std', index=True)
 
+    print("data_excel", data_excel)
     return nombre_columna, data_excel
 
 
@@ -80,6 +81,7 @@ def guardar_matriz_heatmap_kpi(
 ):
     actual_path = os.getcwd()
     valores_matriz = []
+    print("len(nombre_columna)", len(nombre_columna))
     for kpi in range(0, len(nombre_columna)):
         matriz = []
         for i in range(0, rango_s_S, delta):
@@ -92,6 +94,17 @@ def guardar_matriz_heatmap_kpi(
                 else:
                     fila.append('0')
                 fila_int = [float(x) for x in fila]
+        for i in range(0, rango_s_S, 1): #5
+            fila = []
+            j = int(S)
+            if i <= j:
+                tupla = "("+str(i)+", "+str(j)+")"
+                print("tupla - kpi", tupla, kpi)
+                dato = data_excel[tupla][kpi]
+                fila.append(dato)
+            else:
+                fila.append('0')
+            fila_int = [float(x) for x in fila]
             matriz.append(fila_int)
 
         df3 = pd.DataFrame(matriz)

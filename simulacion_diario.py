@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import itertools as it
 import collections as _col
 
+import obtener_demanda
+
 np.random.seed(0)
 
 
@@ -19,13 +21,15 @@ class Bodega:
     ''' Bodega con leadtime de 7 dias '''
     def __init__(
         self, s, S, politica, periodos, demanda, info_producto,
-        tiempo_revision, lead_time, caso_base
+        tiempo_revision, lead_time, caso_base, sucursal
     ):
         # Número de dias de simulación
-        self.dias = periodos
+        self.dias = periodos   #7
         self.politica = politica
         self.caso_base = caso_base
         self.demanda = demanda
+
+        self.sucursal = sucursal
 
         self.nombre_producto = info_producto['nombre']
         self.item_id = info_producto['id']
@@ -53,6 +57,7 @@ class Bodega:
         self.inventario = {}
 
         # Pedidos realizados
+        # Cantidad que se pide en el día i -> dada por la función pedido_semana
         self.cant_ordenada = {}
 
         # Demanda insatisfecha
@@ -64,9 +69,11 @@ class Bodega:
     # Demanda por dia
     def pedido_semana(self, dia, politica):
         ''' Retorna la cantidad a pedir según la política '''
-        if self.inventario[dia] <= self.rop:
-            return self.max - self.inventario[dia]
-        return 0
+        if politica == "(s, S)":
+            if self.inventario[dia] <= self.rop:
+                return self.max - self.inventario[dia]
+            return 0
+
 
     def generar_demanda(self):
         ''' Genera demanda diaria según distribución '''
@@ -78,7 +85,7 @@ class Bodega:
     def run(self):
         ''' Corre simulación de bodega por dia'''
         #self.demanda = self.generar_demanda()
-        self.inventario[0] = self.max
+        self.inventario[0] = 0 #self.max #sacar del penúltimo dato del item x de la sucursal y -> de la demanda poisson
         encamino = False
         # print(f'En camino? {encamino} ')
 
