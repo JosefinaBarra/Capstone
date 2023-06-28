@@ -32,7 +32,6 @@ demanda_real = demanda_historica()
 
 precios_productos = data_productos(productos)
 print('VALORES PRODUCTOS')
-pprint.pprint(precios_productos)
 
 prom_demanda = []
 #prom_demanda = int(np.ceil(np.mean(prom_demanda)))
@@ -79,18 +78,6 @@ for producto in productos:
             engine_kwargs={"options": {"strings_to_numbers": True}}
         )
 
-        #DEFINIR PRONOSTICO DE LA DEMANDA AQUI
-
-            # realizar pronóstico de dos períodos estando en día (t)
-        # error: mse
-        #print(self.item_id)
-        #pronostico = obtener_demanda(self.sucursal, self.item_id)
-        #print(pronostico)
-        #if self.inventario[dia]  < (pronóstico_t+1 + error_t+1) + (pronóstico_t+2 + error_t+2):
-        #if self.inventario[dia]  < (pronostico[0] + pronostico[2]) + (pronostico[1] + pronostico[2]):
-            #pido pronostico_t+2 + error t+2
-        #    return (pronostico[1] + pronostico[2])
-
         resultado = {}
         resultado_bodega = {}
         nombre = precios_productos[producto]['nombre']
@@ -136,12 +123,13 @@ for producto in productos:
         excel.close()
 
         politica_elegida = par_optimo(producto, sucursal)
-        print(f'\nPOLITICA ELEGIDA: {politica_elegida}')
+        if politica_elegida != 'error':
+            print(f'\nPOLITICA ELEGIDA: {politica_elegida}')
 
-        resultado = guardar_periodo_tran(resultado_bodega[politica_elegida], nombre, item_id, sucursal)
+            resultado = guardar_periodo_tran(resultado_bodega[politica_elegida], nombre, item_id, sucursal)
 
-        guardar_kpi_repeticion(resultado, replicas, politica_elegida, producto, sucursal)
+            guardar_kpi_repeticion(resultado, replicas, politica_elegida, producto, sucursal)
 
-        excel.close()
+            excel.close()
 end = time.time()
 print("TOTAL ", end-start)

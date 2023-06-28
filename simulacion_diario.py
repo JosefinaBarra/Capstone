@@ -74,6 +74,15 @@ class Bodega:
                 return self.max - self.inventario[dia]
             return 0
 
+        elif politica == "pdi":
+            # realizar pronóstico de dos períodos estando en día (t)
+            # error: mse
+            pronostico = obtener_demanda(sucursal, item)
+            #if self.inventario[dia]  < (pronóstico_t+1 + error_t+1) + (pronóstico_t+2 + error_t+2):
+            if self.inventario[dia]  < (pronostico[0] + pronostico[2]) + (pronostico[1] + pronostico[2]):
+                #pido pronostico_t+2 + error t+2
+                pass
+
 
     def generar_demanda(self):
         ''' Genera demanda diaria según distribución '''
@@ -183,7 +192,6 @@ class Bodega:
         ''' Retorna valores de kpi en diccionario '''
         demanda = sum(list(self.demanda.values()))
         if demanda == 0:
-            print('ERROR demanda 0')
             demanda = 1
         pedidos = sum(list(self.cant_ordenada.values()))
         ventas = sum(list(self.ventas.values()))
