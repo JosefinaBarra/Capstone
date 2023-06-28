@@ -8,6 +8,7 @@ replicas = 40
 periodos = 365
 politica = "(s, S)"
 #politica = "pronostico"
+#politica = "poisson"
 
 resultado_base = {}
 

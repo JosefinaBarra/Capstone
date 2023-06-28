@@ -4,8 +4,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import itertools as it
 import collections as _col
+import shutil
 
-import obtener_demanda
+from scipy.stats import poisson
+from obtener_demanda import obtener_pronostico
 
 np.random.seed(0)
 
@@ -21,13 +23,15 @@ class Bodega:
     ''' Bodega con leadtime de 7 dias '''
     def __init__(
         self, s, S, politica, periodos, demanda, info_producto,
-        tiempo_revision, lead_time, caso_base, sucursal
+        tiempo_revision, lead_time, caso_base, sucursal, parametro_l
     ):
         # Número de dias de simulación
         self.dias = periodos   #7
         self.politica = politica
         self.caso_base = caso_base
         self.demanda = demanda
+        self.media_demanda = np.mean(list(self.demanda.values()))
+        self.parametro_l = parametro_l
 
         self.sucursal = sucursal
 
@@ -66,6 +70,8 @@ class Bodega:
         # Productos almacenados al final del día i
         self.almacenamiento = {}
 
+        self.pronosticos_semanal = {}
+
     # Demanda por dia
     def pedido_semana(self, dia, politica):
         ''' Retorna la cantidad a pedir según la política '''
@@ -74,14 +80,52 @@ class Bodega:
                 return self.max - self.inventario[dia]
             return 0
 
-        elif politica == "pdi":
+        elif politica == "pronostico":
             # realizar pronóstico de dos períodos estando en día (t)
             # error: mse
-            pronostico = obtener_demanda(sucursal, item)
+
+            # Se guarda en excel demanda semana anterior ~ Poisson
+            shutil.copy('pronostico_demanda/excel_branches/branch0.xlsx', 'pronostico_demanda/excel_branches/branch0(1).xlsx')
+            demanda_semana = 0
+            for i in range(dia, dia-self.tiempo_revision, -1):
+                demanda_semana += self.demanda[i]
+            df = pd.read_excel('pronostico_demanda/excel_branches/branch0(1).xlsx', engine='openpyxl')
+            semanas = df[df.item_id == self.item_id]
+            max_semana = semanas['semana'].max()
+            row = {'Unnamed: 0': df['Unnamed: 0'].max() + 1,'branch': self.sucursal, 'semana': max_semana + 1, 'item_id': self.item_id, 'quantity': demanda_semana}
+            df = df.append(row, ignore_index=True)
+            df.to_excel(f'pronostico_demanda/excel_branches/branch0(1).xlsx', index=False)
+
+            pronostico = obtener_pronostico(self.sucursal, self.item_id)
+            print(f'\n{pronostico[0]} + {pronostico[2]}) + ({pronostico[1]} + {pronostico[2]}')
+            print('PRONOSTICO PROX SEMANA: ', np.ceil((pronostico[0] + pronostico[2]) + (pronostico[1] + pronostico[2])))
+            self.pronosticos_semanal[dia] = np.ceil((pronostico[0] + pronostico[2]) + (pronostico[1] + pronostico[2]))
+
+            print(f'INVENTARIO = {self.inventario[dia]} | Demandado = {demanda_semana} | Pronostico = {self.pronosticos_semanal[dia]}\n')
+
             #if self.inventario[dia]  < (pronóstico_t+1 + error_t+1) + (pronóstico_t+2 + error_t+2):
-            if self.inventario[dia]  < (pronostico[0] + pronostico[2]) + (pronostico[1] + pronostico[2]):
+            if self.inventario[dia]  < self.pronosticos_semanal[dia]:
                 #pido pronostico_t+2 + error t+2
-                pass
+                print(f'Pido para la prox semana {self.pronosticos_semanal[dia]}\n')
+                return self.pronosticos_semanal[dia]
+            return 0
+        
+        elif politica == 'poisson':
+            print(f'lambda: {self.parametro_l}')
+            print(f'media: {self.media_demanda}')
+            prob = 1 - poisson.cdf(self.media_demanda - 1, mu=self.parametro_l)
+            print(f'P(X > x) = 1 - P(X <= x) = {prob}')
+
+            pronostico = obtener_pronostico(self.sucursal, self.item_id)
+            print(f'\n{pronostico[0]} + {prob}) + ({pronostico[1]} + {prob}')
+            print('PRONOSTICO PROX SEMANA: ', np.ceil((pronostico[0] + prob) + (pronostico[1] + prob)))
+            self.pronosticos_semanal[dia] = np.ceil((pronostico[0] + prob) + (pronostico[1] + prob))
+            if self.inventario[dia]  < self.pronosticos_semanal[dia]:
+                #pido pronostico_t+2 + error t+2
+                print(f'Pido para la prox semana {self.pronosticos_semanal[dia]}\n')
+                return self.pronosticos_semanal[dia]
+            return 0
+
 
 
     def generar_demanda(self):
@@ -95,6 +139,7 @@ class Bodega:
         ''' Corre simulación de bodega por dia'''
         #self.demanda = self.generar_demanda()
         self.inventario[0] = 0 #self.max #sacar del penúltimo dato del item x de la sucursal y -> de la demanda poisson
+        self.pronosticos_semanal[0] = 0
         encamino = False
         # print(f'En camino? {encamino} ')
 
@@ -115,7 +160,7 @@ class Bodega:
             # EVALÚO POLÍTICA PARA HACER UN PEDIDO
             if not encamino:
                 # Si toca hacer revisión
-                if self.tiempo_revision != 0 and i % self.tiempo_revision == 0:
+                if i != 0 and i % self.tiempo_revision == 0:
                     self.cant_ordenada[i] = self.pedido_semana(
                         i, self.politica
                     )
