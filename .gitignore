@@ -1,9 +1,8 @@
 \__pycache__
+.vscode
 sample_data.xlsx
 ~$sample_data.xlsx
 *.pdf
-*.xlsx
-*/
 a.py
 *.csv
 *.txt
