@@ -71,7 +71,7 @@ for producto in productos:
             print(f'\n-- PRODUCTO: {producto} SUCURSAL: {sucursal} ---\n')
             demanda_sucursal = demanda_producto[sucursal]
 
-            folder = 'resultados/'+str(producto)
+            folder = 'resultados/lead_time_'+str(leadtime)+'/'+str(producto)
             dir = os.path.join(actual_path, folder)
             if not os.path.exists(dir):
                 os.makedirs(dir)
@@ -107,8 +107,8 @@ for producto in productos:
                         periodos=periodos,
                         demanda=demanda_sucursal[i],
                         info_producto=precios_productos[producto],
-                        tiempo_revision=7,  # Tiene que ser >= 1. =7 Se revisa una vez a la semana
-                        lead_time=7,
+                        tiempo_revision=t_revision,  # Tiene que ser >= 1. =7 Se revisa una vez a la semana
+                        lead_time=leadtime,
                         caso_base=False,
                         sucursal=sucursal,
                         parametro_l = sucursales[producto][sucursal]
@@ -127,20 +127,20 @@ for producto in productos:
             print(f' Guardando gráfico heatmap')
             # Se genera matriz por cada kpi en nueva hoja
             valores_matriz = guardar_matriz_heatmap_kpi(
-                nombre_columna, rango_s_S, delta, data_excel, excel, nombre, item_id, sucursal, dif_s_S
+                nombre_columna, rango_s_S, delta, data_excel, excel, nombre, item_id, sucursal, dif_s_S, leadtime
             )
             print(f' Guardando gráfico 3D')
-            guardar_3d(valores_matriz, nombre_columna, nombre, item_id, sucursal, rango_s_S, delta)
+            guardar_3d(valores_matriz, nombre_columna, nombre, item_id, sucursal, rango_s_S, delta, leadtime)
 
             
 
-            politica_elegida = par_optimo(producto, sucursal)
+            politica_elegida = par_optimo(producto, sucursal, leadtime)
             if politica_elegida != 'error':
                 print(f'\nPOLITICA ELEGIDA: {politica_elegida}')
 
-                resultado = guardar_periodo_tran(resultado_bodega[politica_elegida], nombre, item_id, sucursal)
+                resultado = guardar_periodo_tran(resultado_bodega[politica_elegida], nombre, item_id, sucursal, leadtime)
 
-                guardar_kpi_repeticion(resultado, replicas, politica_elegida, producto, sucursal)
+                guardar_kpi_repeticion(resultado, replicas, politica_elegida, producto, sucursal, leadtime)
 
                 excel.close()
 end = time.time()

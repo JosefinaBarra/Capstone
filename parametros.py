@@ -4,10 +4,18 @@ from obtener_demanda import obtener_pronostico
 from pprint import pprint
 
 # PARAMETROS
-replicas = 5
+replicas = 30
 periodos = 365
-#politica = "(s, S)"
-politica = "pronostico"
+
+t_revision = 7
+leadtime = 7
+
+delta = 5
+rango_s_S = 101
+dif_s_S = 20
+
+politica = "(s, S)"
+#politica = "pronostico"
 #politica = "poisson"
 
 resultado_base = {}
@@ -28,11 +36,8 @@ for index, row in parametros_lambda.iterrows():
 
 productos = list(sucursales.keys())
 
-delta = 5
-rango_s_S = 101
-dif_s_S = 20
 valores_politica = [
-    (s, S) for s in range(0, rango_s_S, delta) for S in range(0, rango_s_S, delta) if s <= S if S-s <= dif_s_S
+    (s, S) for s in range(0, rango_s_S, delta) for S in range(0, rango_s_S, delta) if s <= S
 ]
 if politica == "pronostico":
     delta = 5

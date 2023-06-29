@@ -77,7 +77,7 @@ def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
 
 
 def guardar_matriz_heatmap_kpi(
-        nombre_columna, rango_s_S, delta, data_excel, excel, nombre, item_id, sucursal, dif_s_S
+        nombre_columna, rango_s_S, delta, data_excel, excel, nombre, item_id, sucursal, dif_s_S, leadtime
 ):
     actual_path = os.getcwd()
     valores_matriz = []
@@ -133,7 +133,7 @@ def guardar_matriz_heatmap_kpi(
         ax.set_title(titulo)
         fig.tight_layout()
 
-        folder = 'resultados/'+str(item_id)+'/graficos/sucursal_'+str(sucursal)
+        folder = 'resultados/lead_time_'+str(leadtime)+'/'+str(item_id)+'/graficos/sucursal_'+str(sucursal)
         dir = os.path.join(actual_path, folder)
         if not os.path.exists(dir):
             os.makedirs(dir)
@@ -160,7 +160,7 @@ def surface_plot(matrix, **kwargs):
     return (fig, ax, surf)
 
 
-def guardar_3d(valores_matriz, nombre_columna, nombre, item_id, sucursal, rango_s_S, delta):
+def guardar_3d(valores_matriz, nombre_columna, nombre, item_id, sucursal, rango_s_S, delta, leadtime):
     i = 0
 
     for matriz_kpi in valores_matriz:
@@ -185,7 +185,7 @@ def guardar_3d(valores_matriz, nombre_columna, nombre, item_id, sucursal, rango_
         ax.set_title(titulo)
 
         actual_path = os.getcwd()
-        folder = 'resultados/'+str(item_id)+'/graficos/sucursal_'+str(sucursal)
+        folder = 'resultados/lead_time_'+str(leadtime)+'/'+str(item_id)+'/graficos/sucursal_'+str(sucursal)
 
         dir = os.path.join(actual_path, folder)
         if not os.path.exists(dir):
@@ -195,7 +195,7 @@ def guardar_3d(valores_matriz, nombre_columna, nombre, item_id, sucursal, rango_
     plt.close('all')
 
 
-def guardar_kpi_repeticion(resultado, repeticiones, politica_elegida, producto, sucursal):
+def guardar_kpi_repeticion(resultado, repeticiones, politica_elegida, producto, sucursal, leadtime):
     nivel_servicio = []
     rotura_stock = []
     total_pedidos = []
@@ -251,13 +251,13 @@ def guardar_kpi_repeticion(resultado, repeticiones, politica_elegida, producto, 
 
     df = pd.DataFrame(data)
 
-    path = f'resultados/{producto}/{producto}sucursal_{sucursal}_{politica_elegida}.xlsx'
+    path = f'resultados/lead_time_{leadtime}/{producto}/{producto}sucursal_{sucursal}_{politica_elegida}.xlsx'
     writer = pd.ExcelWriter(path, engine='openpyxl')
     df.to_excel(writer, sheet_name=politica_elegida, index=True)
     writer.close()
 
 
-def guardar_periodo_tran(data, nombre, item_id, sucursal):
+def guardar_periodo_tran(data, nombre, item_id, sucursal, leadtime):
     inventario = []
     kpi_sim = {}
 
@@ -283,7 +283,7 @@ def guardar_periodo_tran(data, nombre, item_id, sucursal):
     plt.title(titulo)
 
     actual_path = os.getcwd()
-    folder = 'resultados/'+str(item_id)+'/graficos/sucursal_'+str(sucursal)
+    folder = 'resultados/lead_time_'+str(leadtime)+'/'+str(item_id)+'/graficos/sucursal_'+str(sucursal)
 
     dir = os.path.join(actual_path, folder)
     if not os.path.exists(dir):
@@ -299,7 +299,7 @@ def guardar_periodo_tran(data, nombre, item_id, sucursal):
     return kpi_sim
 
 def parametros_lambda():
-    df = pd.read_excel("data/cuad13fil.xlsx")
+    df = pd.read_excel("data_productos/cuad13fil.xlsx")
     df = df.sort_values('lambda')
     
     df['lambda'] = df['lambda'] # demanda, pedidos por semana
@@ -318,7 +318,7 @@ def parametros_lambda():
     df = df[df['x']>0]
     df = df.sort_values('lambda')
     
-    df_885 = pd.read_csv('data/lambdas885.txt', delimiter='\t')
+    df_885 = pd.read_csv('data_productos/lambdas885.txt', delimiter='\t')
 
     df1 = df_885[:11].reset_index()
     df1 = df1['Sucursal']

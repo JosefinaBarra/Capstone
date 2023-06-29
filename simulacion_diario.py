@@ -275,7 +275,7 @@ class Bodega:
         plt.ylabel("Inventario")
         titulo = f'Item {self.item_id}: {self.nombre_producto}\n({str(np.ceil(self.rop))}, {str(self.max)})'
         plt.title(titulo)
-        folder = 'resultados/'+str(self.item_id)+'/graficos'
+        folder = 'resultados/lead_time_' + str(self.lead_time)+ '/'+str(self.item_id)+'/graficos'
         dir = os.path.join(actual_path, folder)
         if not os.path.exists(dir):
             os.makedirs(dir)

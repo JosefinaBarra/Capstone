@@ -6,8 +6,8 @@ import pandas as pd
 
 
 # Lee el archivo Excel
-def par_optimo(producto, sucursal):
-    df = pd.read_excel('resultados/'+str(producto)+'/'+str(producto)+'sucursal_'+str(sucursal)+'.xlsx', sheet_name='Mean')
+def par_optimo(producto, sucursal, leadtime):
+    df = pd.read_excel('resultados/lead_time_' + str(leadtime) + '/'+str(producto)+'/'+str(producto)+'sucursal_'+str(sucursal)+'.xlsx', sheet_name='Mean')
 
     max_balance = df['Balance [$]'].max()
     print(f'max balance = {max_balance}')
