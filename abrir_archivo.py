@@ -5,7 +5,7 @@ def demanda_historica():
     demanda_real = {}
     dia = 0
 
-    with open("dda_885.txt") as f:
+    with open("data_productos/dda_885.txt") as f:
         contenido = f.read().split('\n')
         for linea in contenido:
             separado = linea.split()
@@ -17,7 +17,7 @@ def demanda_historica():
 
 def data_productos(productos):
     data = {}
-    archivo = pd.read_csv('items.csv')
+    archivo = pd.read_csv('data_productos/items.csv')
     for producto in productos:
         data[producto] = {}
         info = archivo.loc[archivo['item_id'] == producto]

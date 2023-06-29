@@ -1,9 +1,11 @@
 import numpy as np
 import pandas as pd
+from pprint import pprint
+
 
 def data_branch(branch, item):
     path = f'pronostico_demanda/excel_branches/branch{branch}(1).xlsx'
-    info_branch = pd.read_excel(path).drop(columns=['Unnamed: 0'])
+    info_branch = pd.read_excel(path, engine='openpyxl').drop(columns=['Unnamed: 0'])
 
     dicc_branch = dict()
     branch = info_branch.groupby(['item_id', 'semana'], as_index=False).agg({'quantity': 'sum'})

@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from openpyxl import load_workbook
+from scipy.stats import poisson
 
 
 def guardar_pares_kpi(valores_politica, resultado, replicas, excel):
@@ -132,7 +133,7 @@ def guardar_matriz_heatmap_kpi(
         ax.set_title(titulo)
         fig.tight_layout()
 
-        folder = str(item_id)+'/graficos/sucursal_'+str(sucursal)
+        folder = 'resultados/'+str(item_id)+'/graficos/sucursal_'+str(sucursal)
         dir = os.path.join(actual_path, folder)
         if not os.path.exists(dir):
             os.makedirs(dir)
@@ -184,7 +185,7 @@ def guardar_3d(valores_matriz, nombre_columna, nombre, item_id, sucursal, rango_
         ax.set_title(titulo)
 
         actual_path = os.getcwd()
-        folder = str(item_id)+'/graficos/sucursal_'+str(sucursal)
+        folder = 'resultados/'+str(item_id)+'/graficos/sucursal_'+str(sucursal)
 
         dir = os.path.join(actual_path, folder)
         if not os.path.exists(dir):
@@ -250,10 +251,8 @@ def guardar_kpi_repeticion(resultado, repeticiones, politica_elegida, producto, 
 
     df = pd.DataFrame(data)
 
-    path = f'{producto}/{producto}sucursal_{sucursal}.xlsx'
-    book = load_workbook(path)
+    path = f'resultados/{producto}/{producto}sucursal_{sucursal}_{politica_elegida}.xlsx'
     writer = pd.ExcelWriter(path, engine='openpyxl')
-    writer.book = book
     df.to_excel(writer, sheet_name=politica_elegida, index=True)
     writer.close()
 
@@ -275,7 +274,7 @@ def guardar_periodo_tran(data, nombre, item_id, sucursal):
     print(max_inv)
 
     #periodo = int(input('Periodo transiente: '))
-    periodo = 0
+    periodo = 50
     fig = plt.figure()
     plt.plot(range(0, len(inventario_prom)), inventario_prom)
     plt.vlines(periodo, 0, max_inv, linestyles="dotted", colors="r")
@@ -284,7 +283,7 @@ def guardar_periodo_tran(data, nombre, item_id, sucursal):
     plt.title(titulo)
 
     actual_path = os.getcwd()
-    folder = str(item_id)+'/graficos/sucursal_'+str(sucursal)
+    folder = 'resultados/'+str(item_id)+'/graficos/sucursal_'+str(sucursal)
 
     dir = os.path.join(actual_path, folder)
     if not os.path.exists(dir):
@@ -298,3 +297,53 @@ def guardar_periodo_tran(data, nombre, item_id, sucursal):
     for i in range(0, len(data)):
         kpi_sim[i] = data[i].guardar_kpi()
     return kpi_sim
+
+def parametros_lambda():
+    df = pd.read_excel("data/cuad13fil.xlsx")
+    df = df.sort_values('lambda')
+    
+    df['lambda'] = df['lambda'] # demanda, pedidos por semana
+    lambd = df['lambda']
+    x = []  
+
+    for i, row in df.iterrows():
+        lambd = row['lambda']
+        current_x = 0
+
+        while poisson.sf(current_x, lambd) >  0.05:
+            current_x += 1
+        x.append(current_x)
+
+    df['x'] = x
+    df = df[df['x']>0]
+    df = df.sort_values('lambda')
+    
+    df_885 = pd.read_csv('data/lambdas885.txt', delimiter='\t')
+
+    df1 = df_885[:11].reset_index()
+    df1 = df1['Sucursal']
+    df1 = df1.to_frame()
+
+    df2 = df_885[12:].reset_index()
+    df2 = df2['Sucursal']
+    df2 = df2.to_frame()
+    df2.rename(columns={'Sucursal': 'lambda'}, inplace=True)
+    df2
+
+    df_885 = pd.merge(df1, df2, left_index=True, right_index=True, how='inner')
+    df_885['lambda'] = df_885['lambda'].astype(float)
+    
+    lambd = df_885['lambda']
+    x = []  
+
+    for i, row in df_885.iterrows():
+        lambd = row['lambda']
+        current_x = 0
+
+        while poisson.sf(current_x, lambd) >  0.05:
+            current_x += 1
+        x.append(current_x)
+
+    df_885['x'] = x
+    
+    print(df_885)

@@ -2,6 +2,7 @@
 import os
 import pprint
 import time
+import shutil
 
 import numpy as np
 import pandas as pd
@@ -46,14 +47,17 @@ for producto in productos:
         for replica in range(0, replicas):
             demanda = {}
             for i in range(0, periodos):
-                demanda_generada = np.random.poisson(sucursales_producto[sucursal])
+                if politica == "poisson":
+                    lambd = sucursales_producto[sucursal]['l']
+                else:
+                    lambd = sucursales_producto[sucursal]
+                demanda_generada = np.random.poisson(lambd)
                 # Demanda en el día i
                 demanda[i] = demanda_generada
             prom_demanda.append(np.mean(list(demanda.values())))
 
             # Demandas que se tienen por replica
             demanda_por_replica[replica] = demanda
-
         # Demanda en la sucursal
         demanda_por_sucursal[sucursal] = demanda_por_replica
     demanda_por_producto[producto] = demanda_por_sucursal
@@ -67,7 +71,7 @@ for producto in productos:
             print(f'\n-- PRODUCTO: {producto} SUCURSAL: {sucursal} ---\n')
             demanda_sucursal = demanda_producto[sucursal]
 
-            folder = str(producto)
+            folder = 'resultados/'+str(producto)
             dir = os.path.join(actual_path, folder)
             if not os.path.exists(dir):
                 os.makedirs(dir)
@@ -89,8 +93,13 @@ for producto in productos:
                 muestra_grafico = True
                 resultado[str(valores_politica[j])] = {}
                 resultado_bodega[str(valores_politica[j])] = []
-                # print(f"\nPOLÍTICA {valores}")
+                #print(f"\nPOLÍTICA {valores_politica[j]}")
                 for i in range(0, replicas):
+                    if politica == 'pronostico':
+                        shutil.copy(
+                            f"pronostico_demanda/excel_branches/branch{sucursal}.xlsx", f"pronostico_demanda/excel_branches/branch{sucursal}(2).xlsx"
+                        )
+
                     s = Bodega(
                         s=valores_politica[j][0],
                         S=valores_politica[j][1],
@@ -104,6 +113,7 @@ for producto in productos:
                         sucursal=sucursal,
                         parametro_l = sucursales[producto][sucursal]
                     )
+                    print(f'\n({i}) {valores_politica[j]}')
                     s.run()
                     resultado_bodega[str(valores_politica[j])].append(s)
                     resultado[str(valores_politica[j])][i] = s.guardar_kpi()
@@ -113,6 +123,7 @@ for producto in productos:
             nombre_columna, data_excel = guardar_pares_kpi(
                 valores_politica, resultado, replicas, excel
             )
+            excel.close()
             print(f' Guardando gráfico heatmap')
             # Se genera matriz por cada kpi en nueva hoja
             valores_matriz = guardar_matriz_heatmap_kpi(
@@ -121,7 +132,7 @@ for producto in productos:
             print(f' Guardando gráfico 3D')
             guardar_3d(valores_matriz, nombre_columna, nombre, item_id, sucursal, rango_s_S, delta)
 
-            excel.close()
+            
 
             politica_elegida = par_optimo(producto, sucursal)
             if politica_elegida != 'error':

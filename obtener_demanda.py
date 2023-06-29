@@ -8,26 +8,26 @@ warnings.filterwarnings('ignore')
 def obtener_pronostico(branch, item):
     set_metodo = metodos_branch0.loc[metodos_branch0['item'] == item]
     metodo = set_metodo['metodo'].iloc[0]
-    print(f'metodo: {metodo}')
+    #print(f'metodo: {metodo}')
 
     dicc_branch0 = data_branch(branch, item)
 
     if metodo == "pms":
-        print('Metodo pms')
+        #print('Metodo pms')
         resultado = promedio_movil_simple(dicc_branch0, item)
-        print([resultado[0].iloc[0], resultado[0].iloc[1], resultado[1]])
+        #print([resultado[0].iloc[0], resultado[0].iloc[1], resultado[1]])
         return [resultado[0].iloc[0], resultado[0].iloc[1], resultado[1]]
     elif metodo == "ses":
-        print('Metodo ses')
+        #print('Metodo ses')
         return suavizacion_exp_simp(dicc_branch0, item)
     elif metodo == "sed":
-        print('Metodo sed')
+        #print('Metodo sed')
         return suavizacion_exp_doble(dicc_branch0, item)
     elif metodo == "set":
-        print('Metodo set')
+        #print('Metodo set')
         return suavizacion_exp_triple(dicc_branch0, item)
     elif metodo == "sar":
-        print('Metodo sar')
+        #print('Metodo sar')
         return sarima(dicc_branch0, item)
 
 

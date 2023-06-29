@@ -82,29 +82,27 @@ class Bodega:
         elif politica == "pronostico":
             # realizar pronóstico de dos períodos estando en día (t)
             # error: mse
-
             # Se guarda en excel demanda semana anterior ~ Poisson
             demanda_semana = 0
             for i in range(dia, dia-self.tiempo_revision, -1):
                 demanda_semana += self.demanda[i]
-            df = pd.read_excel('pronostico_demanda/excel_branches/branch0(1).xlsx', engine='openpyxl')
+            df = pd.read_excel('pronostico_demanda/excel_branches/branch0(2).xlsx', engine='openpyxl')
             semanas = df[df.item_id == self.item_id]
             max_semana = semanas['semana'].max()
-            row = {'Unnamed: 0': df['Unnamed: 0'].max() + 1,'branch': self.sucursal, 'semana': max_semana + 1, 'item_id': self.item_id, 'quantity': demanda_semana}
-            df = df.append(row, ignore_index=True)
-            df.to_excel(f'pronostico_demanda/excel_branches/branch0(1).xlsx', index=False)
+            row = [df["Unnamed: 0"].max() + 1, self.sucursal, max_semana + 1, self.item_id, demanda_semana]
+            df.loc[len(df)] = row
+            df.to_excel(f'pronostico_demanda/excel_branches/branch0(2).xlsx', index=False)
 
             pronostico = obtener_pronostico(self.sucursal, self.item_id)
-            print(f'\n{pronostico[0]} + {pronostico[2]}) + ({pronostico[1]} + {pronostico[2]}')
-            print('PRONOSTICO PROX SEMANA: ', np.ceil((pronostico[0] + pronostico[2]) + (pronostico[1] + pronostico[2])))
+            print(f'DIA {dia} ITEM {self.item_id} SEMANA {max_semana + 1}:')
             self.pronosticos_semanal[dia] = np.ceil((pronostico[0] + pronostico[2]) + (pronostico[1] + pronostico[2]))
 
-            print(f'INVENTARIO = {self.inventario[dia]} | Demandado = {demanda_semana} | Pronostico = {self.pronosticos_semanal[dia]}\n')
+            print(f'Inventario = {self.inventario[dia]} | Demandado = {demanda_semana} | Pronostico = {self.pronosticos_semanal[dia]}')
 
             #if self.inventario[dia]  < (pronóstico_t+1 + error_t+1) + (pronóstico_t+2 + error_t+2):
             if self.inventario[dia]  < self.pronosticos_semanal[dia]:
                 #pido pronostico_t+2 + error t+2
-                print(f'Pido para la prox semana {self.pronosticos_semanal[dia]}\n')
+                print(f'CANTIDAD PEDIDA = {self.pronosticos_semanal[dia]}\n')
                 return self.pronosticos_semanal[dia]
             return 0
         
@@ -123,8 +121,6 @@ class Bodega:
                 print(f'Pido para la prox semana {self.pronosticos_semanal[dia]}\n')
                 return self.pronosticos_semanal[dia]
             return 0
-
-
 
     def generar_demanda(self):
         ''' Genera demanda diaria según distribución '''
@@ -279,7 +275,7 @@ class Bodega:
         plt.ylabel("Inventario")
         titulo = f'Item {self.item_id}: {self.nombre_producto}\n({str(np.ceil(self.rop))}, {str(self.max)})'
         plt.title(titulo)
-        folder = str(self.item_id)+'/graficos'
+        folder = 'resultados/'+str(self.item_id)+'/graficos'
         dir = os.path.join(actual_path, folder)
         if not os.path.exists(dir):
             os.makedirs(dir)

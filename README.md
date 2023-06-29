@@ -26,3 +26,10 @@ $$ \displaylines{\left\lbrace \\\ \hspace{3mm} '\left\(s,S\right\)' :\left\lbrac
 Por lo que para cada par $(s,S)$ se almacenan los $KPI$ obtenidos en cada repetición. Con este resultado se usa la función `guardar_pares_kpi()` en el archivo `guardar_data.py` para guardar en el archivo Excel `sample_data.xlsx`, definiendo las filas como los pares de parámetros y las columnas los valores de la media de los $KPI$.  
 
 Además, en el mismo Excel se crea por cada hoja una matriz con los $KPI$ de cada combinación evaluada. De esta matriz se guardan los gráficos de calor en una carpeta llamada graficos usando la función `guardar_matriz_heatmap_kpi()` ubicada en el archivo `guardar_data.py`. 
+
+
+#### Instalar dependecias
+- Instalar pipenv `https://pypi.org/project/pipenv/`
+- Instalar dependencias `python3 -m pipenv install`
+- Acceder al shell `python3 -m pipenv shell`
+- Correr main: `python main.py`
