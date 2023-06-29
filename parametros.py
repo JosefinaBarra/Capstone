@@ -6,13 +6,14 @@ from pprint import pprint
 # PARAMETROS
 replicas = 40
 periodos = 365
-politica = "(s, S)"
-#politica = "pronostico"
+#politica = "(s, S)"
+politica = "pronostico"
 #politica = "poisson"
 
 resultado_base = {}
 
 # Se guardan los parámetros de lambda por producto y sucursal
+'''
 parametros_lambda = pd.read_excel('outputdpsde115.xlsx')
 sucursales = {}
 for index, row in parametros_lambda.iterrows():
@@ -25,7 +26,13 @@ for index, row in parametros_lambda.iterrows():
     
     if branch not in sucursales[item_id]:
         sucursales[item_id][branch] = parametro
-
+'''
+#productos = list(sucursales.keys())
+sucursales = {
+    1878: {
+        0: 0.232876718072104
+    }
+}
 productos = list(sucursales.keys())
 
 delta = 5
@@ -45,5 +52,5 @@ if politica == "pronostico":
     valores_politica = [
         (s, S) for s in range(0, rango_s_S, delta) if s <= S
     ]
-    print("valores politica", valores_politica)
+    #print("valores politica", valores_politica)
     valores_politica = np.array(valores_politica, 'i,i')

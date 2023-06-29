@@ -4,7 +4,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import itertools as it
 import collections as _col
-import shutil
 
 from scipy.stats import poisson
 from obtener_demanda import obtener_pronostico
@@ -85,7 +84,6 @@ class Bodega:
             # error: mse
 
             # Se guarda en excel demanda semana anterior ~ Poisson
-            shutil.copy('pronostico_demanda/excel_branches/branch0.xlsx', 'pronostico_demanda/excel_branches/branch0(1).xlsx')
             demanda_semana = 0
             for i in range(dia, dia-self.tiempo_revision, -1):
                 demanda_semana += self.demanda[i]

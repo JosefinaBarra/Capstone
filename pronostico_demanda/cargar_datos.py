@@ -1,7 +1,20 @@
 import numpy as np
 import pandas as pd
 
-branch0 = pd.read_excel("pronostico_demanda/excel_branches/branch0.xlsx").drop(columns=['Unnamed: 0'])
+def data_branch(branch, item):
+    path = f'pronostico_demanda/excel_branches/branch{branch}(1).xlsx'
+    info_branch = pd.read_excel(path).drop(columns=['Unnamed: 0'])
+
+    dicc_branch = dict()
+    branch = info_branch.groupby(['item_id', 'semana'], as_index=False).agg({'quantity': 'sum'})
+    val_unicos = branch['item_id'].unique().tolist()
+    for v in range(len(val_unicos)):
+        item = val_unicos[v]
+        b_it = branch.loc[branch['item_id']==item]
+        dicc_branch[item] = b_it
+    return dicc_branch
+
+#branch0 = pd.read_excel("pronostico_demanda/excel_branches/branch0(1).xlsx").drop(columns=['Unnamed: 0'])
 #branch1 = pd.read_excel("pronostico_demanda/excel_branches/branch1.xlsx").drop(columns=['Unnamed: 0'])
 #branch2 = pd.read_excel("pronostico_demanda/excel_branches/branch2.xlsx").drop(columns=['Unnamed: 0'])
 #branch3 = pd.read_excel("pronostico_demanda/excel_branches/branch3.xlsx").drop(columns=['Unnamed: 0']) 
@@ -12,7 +25,7 @@ branch0 = pd.read_excel("pronostico_demanda/excel_branches/branch0.xlsx").drop(c
 #branch8 = pd.read_excel("pronostico_demanda/excel_branches/branch8.xlsx").drop(columns=['Unnamed: 0'])
 #branch9 = pd.read_excel("pronostico_demanda/excel_branches/branch9.xlsx").drop(columns=['Unnamed: 0'])
 #branch10 = pd.read_excel("pronostico_demanda/excel_branches/branch10.xlsx").drop(columns=['Unnamed: 0'])
-
+'''
 dicc_branch0 = dict()
 branch = branch0.groupby(['item_id', 'semana'], as_index=False).agg({'quantity': 'sum'})
 val_unicos = branch['item_id'].unique().tolist()
@@ -20,7 +33,7 @@ for v in range(len(val_unicos)):
     item = val_unicos[v]
     b_it = branch.loc[branch['item_id']==item]
     dicc_branch0[item] = b_it
-'''
+
 dicc_branch1 = dict()
 branch = branch1.groupby(['item_id', 'semana'], as_index=False).agg({'quantity': 'sum'})
 val_unicos = branch['item_id'].unique().tolist()

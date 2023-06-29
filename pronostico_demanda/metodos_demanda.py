@@ -46,6 +46,7 @@ def promedio_movil_simple(dicc_branch, item):
 def suavizacion_exp_simp(dicc_branch, item):
     
     data = dicc_branch[item]
+    print(data)
     
     data2 = data.copy()
     data = data2.drop(columns=['item_id'])
@@ -74,7 +75,7 @@ def suavizacion_exp_simp(dicc_branch, item):
     valor1 = list(data_forecast['SES 1'])[-1]
     valor2 = list(data_forecast['SES 2'])[-1]
 
-    return [valor1, valor2]
+    return [valor1, valor2, mae_]
 
 
 def suavizacion_exp_doble(dicc_branch, item):
