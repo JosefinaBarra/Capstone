@@ -6,8 +6,8 @@ import pandas as pd
 
 
 # Lee el archivo Excel
-def par_optimo(producto, sucursal, leadtime):
-    df = pd.read_excel('resultados/lead_time_' + str(leadtime) + '/'+str(producto)+'/'+str(producto)+'sucursal_'+str(sucursal)+'.xlsx', sheet_name='Mean')
+def par_optimo(producto, sucursal, leadtime, t_revision, valor_balance, valor_nivel_servicio):
+    df = pd.read_excel('resultados/B5_lead_time_' + str(leadtime) + '_t_revision_' + str(t_revision) + '/'+str(producto)+'/'+str(producto)+'sucursal_'+str(sucursal)+'.xlsx', sheet_name='Mean')
 
     max_balance = df['Balance [$]'].max()
     print(f'max balance = {max_balance}')
@@ -36,7 +36,7 @@ def par_optimo(producto, sucursal, leadtime):
 
         term1 = gp.quicksum((nivel_s[i] * variables[i, j]) for i in range(len(nivel_s)) for j in range(len(balance)) if i ==j)
         term2 = gp.quicksum((balance[j] * variables[i, j]) for i in range(len(nivel_s)) for j in range(len(balance)) if i ==j)
-        model.setObjective(term1 + term2, GRB.MAXIMIZE)
+        model.setObjective(valor_nivel_servicio*term1 + valor_balance*term2, GRB.MAXIMIZE)
 
         model.optimize()
         count = 0

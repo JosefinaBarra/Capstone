@@ -22,7 +22,7 @@ class Bodega:
     ''' Bodega con leadtime de 7 dias '''
     def __init__(
         self, s, S, politica, periodos, demanda, info_producto,
-        tiempo_revision, lead_time, caso_base, sucursal, parametro_l
+        tiempo_revision, lead_time, t_revision, caso_base, sucursal, parametro_l
     ):
         # Número de dias de simulación
         self.dias = periodos   #7
@@ -49,6 +49,7 @@ class Bodega:
 
         # Lead time pedido
         self.lead_time = lead_time
+        self.t_revision = t_revision
 
         self.max = S
         self.rop = s
@@ -86,12 +87,12 @@ class Bodega:
             demanda_semana = 0
             for i in range(dia, dia-self.tiempo_revision, -1):
                 demanda_semana += self.demanda[i]
-            df = pd.read_excel('pronostico_demanda/excel_branches/branch0(2).xlsx', engine='openpyxl')
+            df = pd.read_excel('pronostico_demanda/excel_branches/branch4(1).xlsx', engine='openpyxl')
             semanas = df[df.item_id == self.item_id]
             max_semana = semanas['semana'].max()
             row = [df["Unnamed: 0"].max() + 1, self.sucursal, max_semana + 1, self.item_id, demanda_semana]
             df.loc[len(df)] = row
-            df.to_excel(f'pronostico_demanda/excel_branches/branch0(2).xlsx', index=False)
+            df.to_excel(f'pronostico_demanda/excel_branches/branch4(1).xlsx', index=False)
 
             pronostico = obtener_pronostico(self.sucursal, self.item_id)
             print(f'DIA {dia} ITEM {self.item_id} SEMANA {max_semana + 1}:')
@@ -275,7 +276,7 @@ class Bodega:
         plt.ylabel("Inventario")
         titulo = f'Item {self.item_id}: {self.nombre_producto}\n({str(np.ceil(self.rop))}, {str(self.max)})'
         plt.title(titulo)
-        folder = 'resultados/lead_time_' + str(self.lead_time)+ '/'+str(self.item_id)+'/graficos'
+        folder = f'resultados/B5_lead_time_{self.lead_time}_t_revision_{self.t_revision}/{self.item_id}/graficos'
         dir = os.path.join(actual_path, folder)
         if not os.path.exists(dir):
             os.makedirs(dir)

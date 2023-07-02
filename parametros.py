@@ -14,6 +14,9 @@ delta = 5
 rango_s_S = 101
 dif_s_S = 20
 
+valor_balance = 5
+valor_nivel_servicio = 1
+
 politica = "(s, S)"
 #politica = "pronostico"
 #politica = "poisson"
@@ -35,13 +38,15 @@ for index, row in parametros_lambda.iterrows():
         sucursales[item_id][branch] = parametro
 
 productos = list(sucursales.keys())
+productos = [628, 885, 1878]
 
 valores_politica = [
     (s, S) for s in range(0, rango_s_S, delta) for S in range(0, rango_s_S, delta) if s <= S
 ]
 if politica == "pronostico":
     delta = 5
-    sucursal = 0
+    sucursal = 4
+    print(productos[0])
     pronostico = obtener_pronostico(sucursal, productos[0])
     print("pronostico", pronostico)
     S = (pronostico[1] + 50)
