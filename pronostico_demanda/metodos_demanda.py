@@ -102,7 +102,9 @@ def suavizacion_exp_doble(dicc_branch, item):
         data_training.loc[len(data_training)] = [data_test.iloc[i][0], data_test.iloc[i][1]]
 
     mae_ = mae(data_test['quantity'], data_forecast['SED 1'])
-    return [data_forecast['SED 1'][-1], data_forecast['SED 2'][-1], mae_]
+    valor1 = list(data_forecast['SED 1'])[-1]
+    valor2 = list(data_forecast['SED 2'])[-1]
+    return [valor1, valor2, mae_]
     
 
 

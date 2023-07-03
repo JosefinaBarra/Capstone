@@ -4,8 +4,6 @@ sample_data.xlsx
 ~$sample_data.xlsx
 *.pdf
 a.py
-*.csv
-*.txt
 *.json
 \resultados
 *.png

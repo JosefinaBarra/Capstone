@@ -44,7 +44,7 @@ class Bodega:
         self.costo_pedido = info_producto['cost']
         self.costo_almacenamiento = info_producto['storage_cost']
         self.costo_demanda_perdida = np.ceil((info_producto['sale_price'] - info_producto['cost'])*1.19)
-
+        #print(f'PRECIOS:\n venta: {self.precio_venta} | pedido: {self.costo_pedido} | alm: {self.costo_almacenamiento} | d perd: {self.costo_demanda_perdida}')
         self.tiempo_revision = tiempo_revision
 
         # Lead time pedido
@@ -87,12 +87,12 @@ class Bodega:
             demanda_semana = 0
             for i in range(dia, dia-self.tiempo_revision, -1):
                 demanda_semana += self.demanda[i]
-            df = pd.read_excel('pronostico_demanda/excel_branches/branch4(1).xlsx', engine='openpyxl')
+            df = pd.read_excel('pronostico_demanda/excel_branches/branch4(5).xlsx', engine='openpyxl')
             semanas = df[df.item_id == self.item_id]
             max_semana = semanas['semana'].max()
             row = [df["Unnamed: 0"].max() + 1, self.sucursal, max_semana + 1, self.item_id, demanda_semana]
             df.loc[len(df)] = row
-            df.to_excel(f'pronostico_demanda/excel_branches/branch4(1).xlsx', index=False)
+            df.to_excel(f'pronostico_demanda/excel_branches/branch4(5).xlsx', index=False)
 
             pronostico = obtener_pronostico(self.sucursal, self.item_id)
             print(f'DIA {dia} ITEM {self.item_id} SEMANA {max_semana + 1}:')
@@ -276,7 +276,7 @@ class Bodega:
         plt.ylabel("Inventario")
         titulo = f'Item {self.item_id}: {self.nombre_producto}\n({str(np.ceil(self.rop))}, {str(self.max)})'
         plt.title(titulo)
-        folder = f'resultados/B5_lead_time_{self.lead_time}_t_revision_{self.t_revision}/{self.item_id}/graficos'
+        folder = f'resultados/lead_time_{self.lead_time}_t_revision_{self.t_revision}/{self.item_id}/graficos'
         dir = os.path.join(actual_path, folder)
         if not os.path.exists(dir):
             os.makedirs(dir)

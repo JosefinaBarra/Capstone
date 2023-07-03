@@ -7,8 +7,8 @@ import pandas as pd
 
 # Lee el archivo Excel
 def par_optimo(producto, sucursal, leadtime, t_revision, valor_balance, valor_nivel_servicio):
-    df = pd.read_excel('resultados/B5_lead_time_' + str(leadtime) + '_t_revision_' + str(t_revision) + '/'+str(producto)+'/'+str(producto)+'sucursal_'+str(sucursal)+'.xlsx', sheet_name='Mean')
-
+    df = pd.read_excel('resultados/lead_time_' + str(leadtime) + '_t_revision_' + str(t_revision) + '/'+str(producto)+'/'+str(producto)+'sucursal_'+str(sucursal)+'.xlsx', sheet_name='Mean')
+    print(f'NS {valor_nivel_servicio} | B {valor_balance}')
     max_balance = df['Balance [$]'].max()
     print(f'max balance = {max_balance}')
     if max_balance <= 0:

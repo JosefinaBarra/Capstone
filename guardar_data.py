@@ -133,7 +133,7 @@ def guardar_matriz_heatmap_kpi(
         ax.set_title(titulo)
         fig.tight_layout()
 
-        folder = f'resultados/B5_lead_time_{leadtime}_t_revision_{t_revision}/{item_id}/graficos/sucursal_{sucursal}'
+        folder = f'resultados/lead_time_{leadtime}_t_revision_{t_revision}/{item_id}/graficos/sucursal_{sucursal}'
         dir = os.path.join(actual_path, folder)
         if not os.path.exists(dir):
             os.makedirs(dir)
@@ -185,7 +185,7 @@ def guardar_3d(valores_matriz, nombre_columna, nombre, item_id, sucursal, rango_
         ax.set_title(titulo)
 
         actual_path = os.getcwd()
-        folder = f'resultados/B5_lead_time_{leadtime}_t_revision_{t_revision}/{item_id}/graficos/sucursal_{sucursal}'
+        folder = f'resultados/lead_time_{leadtime}_t_revision_{t_revision}/{item_id}/graficos/sucursal_{sucursal}'
 
         dir = os.path.join(actual_path, folder)
         if not os.path.exists(dir):
@@ -251,7 +251,7 @@ def guardar_kpi_repeticion(resultado, repeticiones, politica_elegida, producto, 
 
     df = pd.DataFrame(data)
 
-    path = f'resultados/B5_lead_time_{leadtime}_t_revision_{t_revision}/{producto}/{producto}sucursal_{sucursal}_{politica_elegida}.xlsx'
+    path = f'resultados/lead_time_{leadtime}_t_revision_{t_revision}/{producto}/{producto}sucursal_{sucursal}_{politica_elegida}.xlsx'
     writer = pd.ExcelWriter(path, engine='openpyxl')
     df.to_excel(writer, sheet_name=politica_elegida, index=True)
     writer.close()
@@ -281,9 +281,11 @@ def guardar_periodo_tran(data, nombre, item_id, sucursal, leadtime, t_revision):
     plt.text(periodo, max_inv-1,f'  t: {periodo}', color='r')
     titulo = f'S:{sucursal} P:{item_id}: {nombre}\nInventario promedio'
     plt.title(titulo)
+    plt.xlabel('Días')
+    plt.ylabel('Inventario promedio')
 
     actual_path = os.getcwd()
-    folder = f'resultados/B5_lead_time_{leadtime}_t_revision_{t_revision}/{item_id}/graficos/sucursal_{sucursal}'
+    folder = f'resultados/lead_time_{leadtime}_t_revision_{t_revision}/{item_id}/graficos/sucursal_{sucursal}'
 
     dir = os.path.join(actual_path, folder)
     if not os.path.exists(dir):

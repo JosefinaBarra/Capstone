@@ -6,10 +6,10 @@ warnings.filterwarnings('ignore')
 
 
 def obtener_pronostico(branch, item):
-    if branch == branch:
+    if branch == 0:
         set_metodo = metodos_branch0.loc[metodos_branch0['item'] == item]
-    else:
-        set_metodo = metodos_branch4.loc[metodos_branch0['item'] == item]
+    elif branch == 4:
+        set_metodo = metodos_branch4.loc[metodos_branch4['item'] == item]
 
     metodo = set_metodo['metodo'].iloc[0]
     #print(f'metodo: {metodo}')

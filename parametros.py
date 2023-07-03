@@ -7,15 +7,16 @@ from pprint import pprint
 replicas = 30
 periodos = 365
 
+lista_t_revision = [7]
 t_revision = 7
-leadtime = 7
+lista_leadtime = [7]
 
 delta = 5
 rango_s_S = 101
-dif_s_S = 20
+dif_s_S = 50
 
-valor_balance = 5
-valor_nivel_servicio = 1
+valor_balance = 1
+valor_nivel_servicio = 1/1000
 
 politica = "(s, S)"
 #politica = "pronostico"
@@ -53,7 +54,7 @@ if politica == "pronostico":
     S = np.ceil(S)
     print("S", S)
     valores_politica = [
-        (s, S) for s in range(0, rango_s_S, delta) if s <= S
+        (0, S)
     ]
     #print("valores politica", valores_politica)
     valores_politica = np.array(valores_politica, 'i,i')
